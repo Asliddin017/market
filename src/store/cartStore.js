@@ -1,73 +1,93 @@
 import { create } from 'zustand'
-import { db } from '../db/db'
+import { supabase } from '../lib/supabase'
+import { getUserCart } from '../hooks/useData'
 
 // ---------------------------------------------------------------------------
-// Per-user shopping cart, backed by the `carts` table in IndexedDB (keyed by
-// userId). This lets the cart persist across refreshes AND lets an admin view
-// any client's saved cart. Each item stores a price/name snapshot so the cart
-// stays correct even if the underlying product later changes.
-//
-// The active user's cart is mirrored in memory for fast, reactive UI; every
-// mutation writes back to Dexie (fire-and-forget).
+// Per-client shopping cart, backed by the `cart_items` table in Supabase
+// (one row per client+product). The active cart is mirrored in memory for a
+// fast, reactive UI; every mutation writes back to Supabase (fire-and-forget,
+// errors are logged). RLS guarantees a client can only touch their own rows;
+// admins can read any client's cart via getUserCart (Users page).
 // ---------------------------------------------------------------------------
 
 export const useCartStore = create((set, get) => ({
-  userId: null,
+  clientId: null,
   items: [], // [{ id, name, price, unit, image, qty }]
   updatedAt: null,
   loaded: false,
 
-  /** Load the given user's saved cart into memory (null clears it). */
-  loadForUser: async (userId) => {
-    if (userId == null) {
-      set({ userId: null, items: [], updatedAt: null, loaded: true })
+  /** Load the given client's saved cart into memory (null clears it). */
+  loadForUser: async (clientId) => {
+    if (clientId == null) {
+      set({ clientId: null, items: [], updatedAt: null, loaded: true })
       return
     }
-    const row = await db.carts.get(userId)
-    set({ userId, items: row?.items ?? [], updatedAt: row?.updatedAt ?? null, loaded: true })
+    set({ clientId, loaded: false })
+    try {
+      const { items } = await getUserCart(clientId)
+      set({ clientId, items, updatedAt: new Date().toISOString(), loaded: true })
+    } catch (err) {
+      console.error('[cart] load failed:', err)
+      set({ clientId, items: [], updatedAt: null, loaded: true })
+    }
   },
 
-  /** Persist current in-memory cart to Dexie for the active user. */
-  _save: () => {
-    const { userId, items } = get()
-    if (userId == null) return
-    const updatedAt = new Date().toISOString()
-    set({ updatedAt })
-    db.carts.put({ userId, items, updatedAt })
+  /** Upsert one product row to the given quantity in Supabase. */
+  _persistQty: async (productId, quantity) => {
+    const { clientId } = get()
+    if (clientId == null) return
+    set({ updatedAt: new Date().toISOString() })
+    const { error } = await supabase
+      .from('cart_items')
+      .upsert(
+        { client_id: clientId, product_id: productId, quantity },
+        { onConflict: 'client_id,product_id' },
+      )
+    if (error) console.error('[cart] save failed:', error)
+  },
+
+  _persistDelete: async (productId) => {
+    const { clientId } = get()
+    if (clientId == null) return
+    set({ updatedAt: new Date().toISOString() })
+    const { error } = await supabase
+      .from('cart_items')
+      .delete()
+      .eq('client_id', clientId)
+      .eq('product_id', productId)
+    if (error) console.error('[cart] delete failed:', error)
   },
 
   addItem: (product, qty = 1) => {
-    set((state) => {
-      const existing = state.items.find((i) => i.id === product.id)
-      if (existing) {
-        return {
-          items: state.items.map((i) => (i.id === product.id ? { ...i, qty: i.qty + qty } : i)),
-        }
-      }
-      return {
-        items: [
-          ...state.items,
-          {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            unit: product.unit,
-            image: product.image ?? null,
-            qty,
-          },
-        ],
-      }
-    })
-    get()._save()
+    const existing = get().items.find((i) => i.id === product.id)
+    const newQty = (existing?.qty ?? 0) + qty
+    set((state) => ({
+      items: existing
+        ? state.items.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i))
+        : [
+            ...state.items,
+            {
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              unit: product.unit,
+              image: product.image ?? null,
+              qty,
+            },
+          ],
+    }))
+    get()._persistQty(product.id, newQty)
   },
 
   setQty: (id, qty) => {
+    const next = Math.max(0, qty)
     set((state) => ({
       items: state.items
-        .map((i) => (i.id === id ? { ...i, qty: Math.max(0, qty) } : i))
+        .map((i) => (i.id === id ? { ...i, qty: next } : i))
         .filter((i) => i.qty > 0),
     }))
-    get()._save()
+    if (next <= 0) get()._persistDelete(id)
+    else get()._persistQty(id, next)
   },
 
   increment: (id) => get().setQty(id, (get().items.find((i) => i.id === id)?.qty ?? 0) + 1),
@@ -75,12 +95,15 @@ export const useCartStore = create((set, get) => ({
 
   removeItem: (id) => {
     set((state) => ({ items: state.items.filter((i) => i.id !== id) }))
-    get()._save()
+    get()._persistDelete(id)
   },
 
-  clear: () => {
-    set({ items: [] })
-    get()._save()
+  clear: async () => {
+    const { clientId } = get()
+    set({ items: [], updatedAt: new Date().toISOString() })
+    if (clientId == null) return
+    const { error } = await supabase.from('cart_items').delete().eq('client_id', clientId)
+    if (error) console.error('[cart] clear failed:', error)
   },
 }))
 

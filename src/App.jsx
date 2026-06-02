@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { initDb } from './db/db'
 import { useAuthStore } from './store/authStore'
 import { useCartStore } from './store/cartStore'
 import { can } from './lib/roles'
+import { isSupabaseConfigured } from './lib/supabase'
 import Layout from './components/Layout'
 import CategoryBackground from './components/CategoryBackground'
 import Login from './pages/Login'
@@ -16,19 +16,40 @@ import Users from './pages/Users'
 export default function App() {
   const user = useAuthStore((s) => s.user)
   const role = useAuthStore((s) => s.role)
-  const [seeded, setSeeded] = useState(false)
+  const ready = useAuthStore((s) => s.ready)
+  const bootstrap = useAuthStore((s) => s.bootstrap)
 
-  // Import real data + seed accounts once, before rendering routes.
+  // Resolve the Supabase session once, before rendering routes.
   useEffect(() => {
-    initDb().finally(() => setSeeded(true))
-  }, [])
+    bootstrap()
+  }, [bootstrap])
 
-  // Load the logged-in user's saved cart (or clear it on logout).
+  // Load the logged-in client's saved cart (clients only; clear otherwise).
   useEffect(() => {
-    if (seeded) useCartStore.getState().loadForUser(user?.id ?? null)
-  }, [seeded, user?.id])
+    if (!ready) return
+    useCartStore.getState().loadForUser(can(role, 'useCart') ? user?.id ?? null : null)
+  }, [ready, user?.id, role])
 
-  if (!seeded) {
+  if (!isSupabaseConfigured) {
+    return (
+      <>
+        <CategoryBackground />
+        <div className="flex min-h-screen items-center justify-center p-6">
+          <div className="glass-strong max-w-lg rounded-3xl p-8 text-center">
+            <span className="text-5xl">🔌</span>
+            <h1 className="mt-4 font-display text-2xl font-extrabold">Supabase sozlanmagan</h1>
+            <p className="mt-2 text-sm text-slate-400">
+              <code className="text-brand-300">VITE_SUPABASE_URL</code> va{' '}
+              <code className="text-brand-300">VITE_SUPABASE_ANON_KEY</code> ni{' '}
+              <code>.env.local</code> ga qo'shing (README ga qarang), so'ng qayta ishga tushiring.
+            </p>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  if (!ready) {
     return (
       <>
         <CategoryBackground />

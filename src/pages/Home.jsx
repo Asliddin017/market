@@ -14,8 +14,12 @@ const fadeUp = {
 }
 
 export default function Home() {
-  const products = useProducts() ?? []
-  const categories = useCategories() ?? []
+  const productsQuery = useProducts()
+  const categoriesQuery = useCategories()
+  const products = productsQuery.data ?? []
+  const categories = categoriesQuery.data ?? []
+  const loading = productsQuery.loading || categoriesQuery.loading
+  const error = productsQuery.error || categoriesQuery.error
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const meta = ROLE_META[role]
@@ -75,6 +79,19 @@ export default function Home() {
         </div>
       </motion.section>
 
+      {error ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-16 text-center">
+          <span className="text-5xl">⚠️</span>
+          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
+          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
+        </div>
+      ) : loading ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-16 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
+          <p className="mt-3 text-sm text-slate-400">Yuklanmoqda…</p>
+        </div>
+      ) : (
+      <>
       {/* Stats */}
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s, i) => (
@@ -137,6 +154,8 @@ export default function Home() {
             })}
           </div>
         </section>
+      )}
+      </>
       )}
     </div>
   )

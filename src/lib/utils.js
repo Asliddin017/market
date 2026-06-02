@@ -1,5 +1,39 @@
 // Small shared helpers.
 
+/** Build a URL-safe slug from a (possibly Cyrillic) category name. */
+export function slugify(name = '') {
+  const base = String(name)
+    .toLowerCase()
+    .replace(/[`'ʻʼ’()]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '') // drop non-latin (Cyrillic) chars
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+  return base || `kat-${Math.random().toString(36).slice(2, 8)}`
+}
+
+/**
+ * Normalise a name to Title Case (first letter of every word uppercase, rest
+ * lowercase), trimming and collapsing whitespace. Locale-aware so Uzbek Latin
+ * AND Cyrillic both case correctly. Numbers / parenthetical parts stay intact
+ * because lowercasing leaves digits unchanged and we only uppercase letters
+ * that start a "word".
+ *
+ *   "KATTA"          -> "Katta"
+ *   "kATTa suv"      -> "Katta Suv"
+ *   "набеглави"      -> "Набеглави"
+ *   "тян-шан (1.5)"  -> "Тян-Шан (1.5)"
+ */
+export function toTitleCase(value = '') {
+  return String(value)
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase()
+    // A word starts at the string start or right after a space, hyphen, slash
+    // or opening paren. Uppercase the first *letter* found there.
+    .replace(/(^|[\s\-\/(])(\p{L})/gu, (_m, sep, ch) => sep + ch.toLocaleUpperCase())
+}
+
 /** Format a number as Uzbek so'm, e.g. 18000 -> "18 000 so'm". */
 export function formatSom(value) {
   const n = Number(value) || 0

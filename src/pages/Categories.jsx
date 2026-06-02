@@ -10,8 +10,12 @@ import { formatDateTime } from '../lib/utils'
 const ICONS = ['⚡', '🥛', '🍞', '🍎', '🥕', '🍫', '🧃', '📦', '🧀', '🍗', '🐟', '🧂', '☕', '🍷']
 
 export default function Categories() {
-  const categories = useCategories() ?? []
-  const products = useProducts() ?? []
+  const categoriesQuery = useCategories()
+  const productsQuery = useProducts()
+  const categories = categoriesQuery.data ?? []
+  const products = productsQuery.data ?? []
+  const loading = categoriesQuery.loading || productsQuery.loading
+  const error = categoriesQuery.error || productsQuery.error
   const role = useAuthStore((s) => s.role)
 
   const canManage = can(role, 'manageCategories')
@@ -121,7 +125,25 @@ export default function Categories() {
         )}
       </AnimatePresence>
 
-      {/* Grid of categories */}
+      {/* Grid of categories — explicit loading / error / empty / data states */}
+      {error ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
+          <span className="text-5xl">⚠️</span>
+          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
+          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
+        </div>
+      ) : loading ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
+          <p className="mt-3 text-sm text-slate-400">Kategoriyalar yuklanmoqda…</p>
+        </div>
+      ) : categories.length === 0 ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
+          <span className="text-5xl">🏷️</span>
+          <p className="mt-3 text-lg font-semibold">Hech narsa topilmadi</p>
+          <p className="text-sm text-slate-400">Hozircha kategoriyalar yo'q.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {categories.map((c) => (
           <motion.div
@@ -191,6 +213,7 @@ export default function Categories() {
           </motion.div>
         ))}
       </div>
+      )}
 
       <ConfirmDialog
         open={!!toDelete}

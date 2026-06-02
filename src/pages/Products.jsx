@@ -4,26 +4,28 @@ import { useProducts, useCategories, deleteProduct } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
 import { useUiStore } from '../store/uiStore'
-import { can } from '../lib/roles'
+import { can, ROLES } from '../lib/roles'
 import { smartSearch } from '../lib/search'
 import { resolveThemeKey } from '../lib/categoryThemes'
 import SearchBar from '../components/SearchBar'
 import ProductCard from '../components/ProductCard'
 import ProductForm from '../components/ProductForm'
 import ConfirmDialog from '../components/ConfirmDialog'
+import BackupControls from '../components/BackupControls'
 
 // How many products to render at once. Keeps the DOM light even with thousands
 // of products; "Ko'proq" reveals the next page. Avoids long main-thread work.
 const PAGE_SIZE = 24
 
 export default function Products() {
-  const productsData = useProducts()
-  const categoriesData = useCategories()
-  // `undefined` => still loading from IndexedDB; coalesce to a safe array so
-  // every downstream memo/render works whether loading, empty, or populated.
-  const loading = productsData === undefined || categoriesData === undefined
-  const products = productsData ?? []
-  const categories = categoriesData ?? []
+  const productsQuery = useProducts()
+  const categoriesQuery = useCategories()
+  // Coalesce to safe arrays so every downstream memo/render works whether
+  // loading, empty, or populated. `loading`/`error` drive the explicit states.
+  const products = productsQuery.data ?? []
+  const categories = categoriesQuery.data ?? []
+  const loading = productsQuery.loading || categoriesQuery.loading
+  const error = productsQuery.error || categoriesQuery.error
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const setThemeKey = useUiStore((s) => s.setThemeKey)
@@ -39,6 +41,7 @@ export default function Products() {
   const canManage = can(role, 'manageProducts')
   const canDelete = can(role, 'deleteProducts')
   const canAddToCart = can(role, 'useCart')
+  const isAdmin = role === ROLES.ADMIN
 
   const catById = useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
@@ -98,9 +101,12 @@ export default function Products() {
           <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Mahsulotlar</h1>
           <p className="text-sm text-slate-400">{products.length} ta mahsulot · {categories.length} ta kategoriya</p>
         </div>
-        {canManage && (
-          <button onClick={openCreate} className="btn-primary">➕ Yangi mahsulot</button>
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && <BackupControls />}
+          {canManage && (
+            <button onClick={openCreate} className="btn-primary">➕ Yangi mahsulot</button>
+          )}
+        </div>
       </div>
 
       <SearchBar value={query} onChange={setQuery} resultCount={results.length} />
@@ -125,7 +131,13 @@ export default function Products() {
       </div>
 
       {/* Grid */}
-      {loading ? (
+      {error ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
+          <span className="text-5xl">⚠️</span>
+          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
+          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
+        </div>
+      ) : loading ? (
         <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
           <p className="mt-3 text-sm text-slate-400">Mahsulotlar yuklanmoqda…</p>

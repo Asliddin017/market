@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { UNITS } from '../db/db'
+import { UNITS } from '../lib/constants'
 import { saveProduct } from '../hooks/useData'
 import { fileToDataUrl, formatSom } from '../lib/utils'
 

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { UNITS } from '../db/db'
+import { UNITS } from '../lib/constants'
 import { saveProduct } from '../hooks/useData'
 import { fileToDataUrl } from '../lib/utils'
+import PriceHistory from './PriceHistory'
 
 const EMPTY = { name: '', categoryId: '', price: '', unit: 'dona', image: null }
 
@@ -92,7 +93,7 @@ export default function ProductForm({ open, onClose, product, categories }) {
                   <select
                     className="input"
                     value={form.categoryId}
-                    onChange={(e) => set('categoryId', Number(e.target.value))}
+                    onChange={(e) => set('categoryId', e.target.value)}
                   >
                     <option value="" disabled>Tanlang…</option>
                     {categories.map((c) => (
@@ -145,6 +146,8 @@ export default function ProductForm({ open, onClose, product, categories }) {
               )}
 
               {error && <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-xs text-rose-300">{error}</p>}
+
+              {product?.id && <PriceHistory productId={product.id} />}
 
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={onClose} className="btn-ghost">Bekor qilish</button>
