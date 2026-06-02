@@ -1,0 +1,1181 @@
+{
+  "categories": [
+    "Tagaklar (Pampers)",
+    "Pishirilgan kolbasa",
+    "Dudlangan kolbasa",
+    "Go'sht mahsulotlari",
+    "Sosiska",
+    "Pishloq",
+    "Sigaretlar",
+    "Muzqaymoq",
+    "Muzlatilgan mahsulotlar",
+    "Ichimliklar",
+    "Energetik ichimliklar"
+  ],
+  "products": [
+    {
+      "name": "Perla 1-o'lcham",
+      "price": 2000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Prima 2-o'lcham",
+      "price": 2500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Huggies classic 2-o'lcham",
+      "price": 2000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Perla 2-o'lcham",
+      "price": 2000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Prima 3-o'lcham",
+      "price": 3000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Huggies classic 3-o'lcham",
+      "price": 2500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Perla 3-o'lcham",
+      "price": 2500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Prima 4-o'lcham",
+      "price": 3500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Huggies classic 4-o'lcham",
+      "price": 2500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Perla 4-o'lcham",
+      "price": 2500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Prima 5-o'lcham",
+      "price": 4000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Huggies classic 5-o'lcham",
+      "price": 3000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Perla 5-o'lcham",
+      "price": 3000,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Prima 6-o'lcham",
+      "price": 4500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Perla 6-o'lcham",
+      "price": 3500,
+      "category": "Tagaklar (Pampers)",
+      "unit": "dona"
+    },
+    {
+      "name": "Для завтрак",
+      "price": 40000,
+      "category": "Pishirilgan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Докторская Зефран",
+      "price": 45000,
+      "category": "Pishirilgan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Докторская Тим",
+      "price": 55000,
+      "category": "Pishirilgan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Докторская Андалус",
+      "price": 80000,
+      "category": "Pishirilgan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Шедевр Ширин",
+      "price": 85000,
+      "category": "Pishirilgan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Сервелат Тим",
+      "price": 70000,
+      "category": "Dudlangan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Ширин ингичка",
+      "price": 100000,
+      "category": "Dudlangan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Пукон",
+      "price": 100000,
+      "category": "Dudlangan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Краковский",
+      "price": 55000,
+      "category": "Dudlangan kolbasa",
+      "unit": "kg"
+    },
+    {
+      "name": "Боярский (дона)",
+      "price": 18000,
+      "category": "Dudlangan kolbasa",
+      "unit": "dona"
+    },
+    {
+      "name": "Шахский (дона)",
+      "price": 30000,
+      "category": "Dudlangan kolbasa",
+      "unit": "dona"
+    },
+    {
+      "name": "Казы там там",
+      "price": 200000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Казы марко тим",
+      "price": 300000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Индейка",
+      "price": 70000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Индейка киммат",
+      "price": 80000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Акарачка",
+      "price": 35000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Голен",
+      "price": 45000,
+      "category": "Go'sht mahsulotlari",
+      "unit": "kg"
+    },
+    {
+      "name": "Тим полоса",
+      "price": 55000,
+      "category": "Sosiska",
+      "unit": "kg"
+    },
+    {
+      "name": "Сарделка",
+      "price": 80000,
+      "category": "Sosiska",
+      "unit": "kg"
+    },
+    {
+      "name": "Пирамида",
+      "price": 60000,
+      "category": "Sosiska",
+      "unit": "kg"
+    },
+    {
+      "name": "Охота",
+      "price": 75000,
+      "category": "Sosiska",
+      "unit": "kg"
+    },
+    {
+      "name": "Ханский",
+      "price": 70000,
+      "category": "Pishloq",
+      "unit": "kg"
+    },
+    {
+      "name": "Ханский (дона)",
+      "price": 15000,
+      "category": "Pishloq",
+      "unit": "dona"
+    },
+    {
+      "name": "Мацарелла Пицца (дона)",
+      "price": 15000,
+      "category": "Pishloq",
+      "unit": "dona"
+    },
+    {
+      "name": "Легенда",
+      "price": 70000,
+      "category": "Pishloq",
+      "unit": "kg"
+    },
+    {
+      "name": "Самарканд",
+      "price": 130000,
+      "category": "Pishloq",
+      "unit": "kg"
+    },
+    {
+      "name": "Сырная палочка",
+      "price": 75000,
+      "category": "Pishloq",
+      "unit": "kg"
+    },
+    {
+      "name": "Палмалл простой",
+      "price": 18000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Милано",
+      "price": 17000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кемал",
+      "price": 20000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Винстон",
+      "price": 22000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палмалл микс",
+      "price": 22000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палмалл узун",
+      "price": 22000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Лд микс",
+      "price": 22000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Собрание",
+      "price": 24000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Эссе чендж",
+      "price": 28000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кент 6",
+      "price": 24000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кент 8",
+      "price": 24000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кент микс",
+      "price": 24000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Парламент океан",
+      "price": 25000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Парламент микс",
+      "price": 25000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Парламент аква блу",
+      "price": 25000,
+      "category": "Sigaretlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Милки Жой",
+      "price": 30000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Венди",
+      "price": 35000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Семейный",
+      "price": 15000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Брикет",
+      "price": 10000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Бисго конус",
+      "price": 10000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Бисго шоколад",
+      "price": 10000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Биссго стакан",
+      "price": 10000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Алфетто",
+      "price": 10000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Газета",
+      "price": 8000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Султан",
+      "price": 8000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Терри",
+      "price": 7000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Эксклюсив рожок",
+      "price": 7000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Магнит",
+      "price": 7000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Чоколито",
+      "price": 7000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Северное сияние",
+      "price": 6000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Темпо",
+      "price": 6000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Италиано",
+      "price": 5000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Бамбук",
+      "price": 3000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Фрутто",
+      "price": 3000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Сырок",
+      "price": 5000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Сырок киммат",
+      "price": 12000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Сырок жиян",
+      "price": 12000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Черника",
+      "price": 9000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Бахрома мохито",
+      "price": 15000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Бахрома гранат",
+      "price": 15000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Бахрома персик",
+      "price": 15000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Бахрома чернослив",
+      "price": 23000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Крези",
+      "price": 5000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Росси",
+      "price": 3000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Одноклассник",
+      "price": 3000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Роял твист",
+      "price": 3000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Коракум",
+      "price": 5000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Гранд",
+      "price": 5000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Чизкейк",
+      "price": 6000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Лёд",
+      "price": 1000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Раис Айрон",
+      "price": 1000,
+      "category": "Muzqaymoq",
+      "unit": "dona"
+    },
+    {
+      "name": "Муса музqаймоq 0.5 кг",
+      "price": 25000,
+      "category": "Muzqaymoq",
+      "unit": "kg"
+    },
+    {
+      "name": "Муса муzqаймоq 1.0 кг",
+      "price": 42000,
+      "category": "Muzqaymoq",
+      "unit": "kg"
+    },
+    {
+      "name": "Раис муzqаймоq 0.5 кг",
+      "price": 18000,
+      "category": "Muzqaymoq",
+      "unit": "kg"
+    },
+    {
+      "name": "Раис муzqаймоq 1.0 кг",
+      "price": 32000,
+      "category": "Muzqaymoq",
+      "unit": "kg"
+    },
+    {
+      "name": "Пельмен (300гр) Муса",
+      "price": 20000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Пельмен (500гр) Муса",
+      "price": 30000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тифтели Муса",
+      "price": 30000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Катлама",
+      "price": 20000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Хамир (500гр)",
+      "price": 20000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Хамир (1000гр)",
+      "price": 35000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кийма (170гр) Муса",
+      "price": 23000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кийма (500гр) Муса",
+      "price": 65000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Котлет (500гр)",
+      "price": 55000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Котлет говядина",
+      "price": 30000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Котлет куриный",
+      "price": 20000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Фарш (250гр)",
+      "price": 16000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Фарш (200гр)",
+      "price": 10000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Пельмен (300гр) Миллий",
+      "price": 10000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Пельмен (500гр) Миллий",
+      "price": 15000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тифтели (300гр)",
+      "price": 17000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Мясо Вакум (1 кг)",
+      "price": 100000,
+      "category": "Muzlatilgan mahsulotlar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (0.25)",
+      "price": 3000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (0.5)",
+      "price": 4000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (1.0)",
+      "price": 5000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (1.5)",
+      "price": 6000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (5.0)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (10.0)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Асу (0.5)",
+      "price": 6000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Асу (1.0)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Асу (1.5)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Дада чой (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Дада чой (1.0)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Пиала айсти (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Пиала айсти (1.0)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сейлон чой (0.5)",
+      "price": 6000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сейлон чой (1.5)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Динай (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Динай (1.0)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палпи (0.5)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палпи (1.0)",
+      "price": 20000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Алое вера (0.5)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Алое вера (1.5)",
+      "price": 27000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Черноголовка (1.0)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Черноголовка (1.5)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Флавис (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Черноголовка (2.0)",
+      "price": 16000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (1.0)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (1.5)",
+      "price": 16000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (2.0)",
+      "price": 22000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палпи кола (0.5)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Палпи кола (1.0)",
+      "price": 17000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок детский",
+      "price": 4000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Мева",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Блис",
+      "price": 15000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Блис киммат",
+      "price": 18000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Добрый",
+      "price": 20000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Рич",
+      "price": 27000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Стинг (0.33)",
+      "price": 5000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Мохито (0.5)",
+      "price": 3000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Мохито (1.5)",
+      "price": 6000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Морс",
+      "price": 5000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Морс мевали",
+      "price": 6000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тайм чой (0.5)",
+      "price": 3000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тайм чой (1.25)",
+      "price": 5000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок (3л)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тропик (0.5)",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тропик (1.0)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Флавис (1.5)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш кичкина",
+      "price": 8000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш ортача",
+      "price": 10000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш котта",
+      "price": 13000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Горилла кичкина",
+      "price": 10000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Горилла котта",
+      "price": 13000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "18+ кичкина",
+      "price": 10000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "18+ котта",
+      "price": 13000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Стинг (пепси)",
+      "price": 10000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Рокстар кичкина",
+      "price": 8000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Рокстар котта",
+      "price": 13000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Адреналин кичкина",
+      "price": 12000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Адреналин котта",
+      "price": 16000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Редбулл кичкина",
+      "price": 20000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Редбулл ортача",
+      "price": 28000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Редбулл котта",
+      "price": 35000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Мохито",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Боржоми (банка)",
+      "price": 12000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Анор Роял",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Динай (банка)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Ава",
+      "price": 8000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола кичкина",
+      "price": 7000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола котта",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Rootz",
+      "price": 12000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Sting",
+      "price": 10000,
+      "category": "Energetik ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (бутулка)",
+      "price": 5000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток (0.33)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток (0.5)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток (0.75)",
+      "price": 16000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Боржоми (бутулка)",
+      "price": 18000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тян-Шан (1.0)",
+      "price": 10000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Тян-Шан (1.5)",
+      "price": 13000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    },
+    {
+      "name": "Набеглави",
+      "price": 15000,
+      "category": "Ichimliklar",
+      "unit": "dona"
+    }
+  ]
+}
