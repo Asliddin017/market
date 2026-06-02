@@ -113,7 +113,7 @@ function UserRow({ user, isSelf }) {
 }
 
 export default function Users() {
-  const users = useUsers()
+  const users = useUsers() ?? []
   const me = useAuthStore((s) => s.user)
   useThemeKey('default')
 

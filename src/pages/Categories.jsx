@@ -10,8 +10,8 @@ import { formatDateTime } from '../lib/utils'
 const ICONS = ['⚡', '🥛', '🍞', '🍎', '🥕', '🍫', '🧃', '📦', '🧀', '🍗', '🐟', '🧂', '☕', '🍷']
 
 export default function Categories() {
-  const categories = useCategories()
-  const products = useProducts()
+  const categories = useCategories() ?? []
+  const products = useProducts() ?? []
   const role = useAuthStore((s) => s.role)
 
   const canManage = can(role, 'manageCategories')

@@ -14,8 +14,8 @@ const fadeUp = {
 }
 
 export default function Home() {
-  const products = useProducts()
-  const categories = useCategories()
+  const products = useProducts() ?? []
+  const categories = useCategories() ?? []
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const meta = ROLE_META[role]

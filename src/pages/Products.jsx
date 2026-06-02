@@ -17,8 +17,13 @@ import ConfirmDialog from '../components/ConfirmDialog'
 const PAGE_SIZE = 24
 
 export default function Products() {
-  const products = useProducts()
-  const categories = useCategories()
+  const productsData = useProducts()
+  const categoriesData = useCategories()
+  // `undefined` => still loading from IndexedDB; coalesce to a safe array so
+  // every downstream memo/render works whether loading, empty, or populated.
+  const loading = productsData === undefined || categoriesData === undefined
+  const products = productsData ?? []
+  const categories = categoriesData ?? []
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const setThemeKey = useUiStore((s) => s.setThemeKey)
@@ -120,7 +125,12 @@ export default function Products() {
       </div>
 
       {/* Grid */}
-      {results.length === 0 ? (
+      {loading ? (
+        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
+          <p className="mt-3 text-sm text-slate-400">Mahsulotlar yuklanmoqda…</p>
+        </div>
+      ) : results.length === 0 ? (
         <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
           <span className="text-5xl">🔍</span>
           <p className="mt-3 text-lg font-semibold">Hech narsa topilmadi</p>

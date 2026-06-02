@@ -1,19 +1,23 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, slugify } from '../db/db'
 
+// NOTE: these return `undefined` while the (async) IndexedDB query is still in
+// flight, and the array once it resolves. Callers should coalesce with `?? []`
+// and may use the `undefined` value to distinguish "loading" from "empty".
+
 /** Live list of categories (re-renders automatically on any change). */
 export function useCategories() {
-  return useLiveQuery(() => db.categories.orderBy('name').toArray(), [], [])
+  return useLiveQuery(() => db.categories.orderBy('name').toArray(), [])
 }
 
 /** Live list of products. */
 export function useProducts() {
-  return useLiveQuery(() => db.products.toArray(), [], [])
+  return useLiveQuery(() => db.products.toArray(), [])
 }
 
 /** Live list of all users (admin). */
 export function useUsers() {
-  return useLiveQuery(() => db.users.orderBy('createdAt').toArray(), [], [])
+  return useLiveQuery(() => db.users.orderBy('createdAt').toArray(), [])
 }
 
 // ---- Product mutations ----------------------------------------------------
