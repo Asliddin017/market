@@ -14,23 +14,29 @@ export const useCartStore = create((set, get) => ({
   clientId: null,
   items: [], // [{ id, name, price, unit, image, qty }]
   updatedAt: null,
-  loaded: false,
+  loaded: false, // first load finished (success OR error)?
+  error: null, // set when the saved cart failed to load
 
   /** Load the given client's saved cart into memory (null clears it). */
   loadForUser: async (clientId) => {
     if (clientId == null) {
-      set({ clientId: null, items: [], updatedAt: null, loaded: true })
+      set({ clientId: null, items: [], updatedAt: null, loaded: true, error: null })
       return
     }
-    set({ clientId, loaded: false })
+    set({ clientId, loaded: false, error: null })
     try {
       const { items } = await getUserCart(clientId)
-      set({ clientId, items, updatedAt: new Date().toISOString(), loaded: true })
+      set({ clientId, items, updatedAt: new Date().toISOString(), loaded: true, error: null })
     } catch (err) {
       console.error('[cart] load failed:', err)
-      set({ clientId, items: [], updatedAt: null, loaded: true })
+      // Keep loaded=false semantics distinct from empty: surface an error so the
+      // page can offer a retry instead of falsely showing "savatcha bo'sh".
+      set({ clientId, items: [], updatedAt: null, loaded: true, error: err })
     }
   },
+
+  /** Re-run the load for the current client (retry button). */
+  reload: () => get().loadForUser(get().clientId),
 
   /** Upsert one product row to the given quantity in Supabase. */
   _persistQty: async (productId, quantity) => {

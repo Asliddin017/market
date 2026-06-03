@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useCartStore, selectTotal, selectCount } from '../store/cartStore'
 import ProductImage from '../components/ProductImage'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { LoadingState, ErrorState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
 
 export default function CartPage() {
@@ -16,6 +17,9 @@ export default function CartPage() {
   const total = useCartStore(selectTotal)
   const count = useCartStore(selectCount)
   const updatedAt = useCartStore((s) => s.updatedAt)
+  const loaded = useCartStore((s) => s.loaded)
+  const error = useCartStore((s) => s.error)
+  const reload = useCartStore((s) => s.reload)
 
   const [confirmClear, setConfirmClear] = useState(false)
   const [done, setDone] = useState(false)
@@ -24,6 +28,16 @@ export default function CartPage() {
     setDone(true)
     clear()
     setTimeout(() => setDone(false), 3500)
+  }
+
+  // Saved cart still loading from Supabase — show a spinner, not an empty cart.
+  if (!loaded && !done) {
+    return <LoadingState label="Savatcha yuklanmoqda…" />
+  }
+
+  // Failed to load the saved cart — offer a retry instead of "savatcha bo'sh".
+  if (error && !done) {
+    return <ErrorState onRetry={reload} message="Savatchani yuklab bo'lmadi" />
   }
 
   if (items.length === 0 && !done) {

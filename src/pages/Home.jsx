@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
 import { ROLE_META, can } from '../lib/roles'
 import ProductCard from '../components/ProductCard'
+import { LoadingState, ErrorState } from '../components/AsyncStates'
 import { formatSom, toTime } from '../lib/utils'
 
 const fadeUp = {
@@ -23,6 +24,10 @@ export default function Home() {
   const categories = categoriesQuery.data ?? EMPTY
   const loading = productsQuery.loading || categoriesQuery.loading
   const error = productsQuery.error || categoriesQuery.error
+  const retry = () => {
+    productsQuery.refetch?.()
+    categoriesQuery.refetch?.()
+  }
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const meta = ROLE_META[role]
@@ -83,16 +88,9 @@ export default function Home() {
       </motion.section>
 
       {error ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-16 text-center">
-          <span className="text-5xl">⚠️</span>
-          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
-          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
-        </div>
+        <ErrorState onRetry={retry} />
       ) : loading ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-16 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
-          <p className="mt-3 text-sm text-slate-400">Yuklanmoqda…</p>
-        </div>
+        <LoadingState />
       ) : (
       <>
       {/* Stats */}

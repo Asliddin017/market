@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore'
 import { useThemeKey } from '../hooks/useThemeKey'
 import { ROLES, ROLE_META } from '../lib/roles'
 import { cartTotals } from '../store/cartStore'
+import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
 
 const ROLE_OPTIONS = [ROLES.CLIENT, ROLES.SELLER, ROLES.ADMIN]
@@ -143,6 +144,7 @@ export default function Users() {
   const users = usersQuery.data ?? []
   const loading = usersQuery.loading
   const error = usersQuery.error
+  const retry = () => usersQuery.refetch?.()
   const me = useAuthStore((s) => s.user)
   useThemeKey('default')
 
@@ -161,22 +163,11 @@ export default function Users() {
       </div>
 
       {error ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">⚠️</span>
-          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
-          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
-        </div>
+        <ErrorState onRetry={retry} />
       ) : loading ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
-          <p className="mt-3 text-sm text-slate-400">Foydalanuvchilar yuklanmoqda…</p>
-        </div>
+        <LoadingState label="Foydalanuvchilar yuklanmoqda…" />
       ) : users.length === 0 ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">👥</span>
-          <p className="mt-3 text-lg font-semibold">Hech narsa topilmadi</p>
-          <p className="text-sm text-slate-400">Hozircha foydalanuvchilar yo'q.</p>
-        </div>
+        <EmptyState icon="👥" title="Hech narsa topilmadi" hint="Hozircha foydalanuvchilar yo'q." />
       ) : (
         <div className="space-y-3">
           {users.map((u) => (

@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore'
 import { can } from '../lib/roles'
 import ConfirmDialog from '../components/ConfirmDialog'
 import QuickAddProducts from '../components/QuickAddProducts'
+import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 import { formatDateTime } from '../lib/utils'
 
 const ICONS = ['⚡', '🥛', '🍞', '🍎', '🥕', '🍫', '🧃', '📦', '🧀', '🍗', '🐟', '🧂', '☕', '🍷']
@@ -19,6 +20,10 @@ export default function Categories() {
   const products = productsQuery.data ?? EMPTY
   const loading = categoriesQuery.loading || productsQuery.loading
   const error = categoriesQuery.error || productsQuery.error
+  const retry = () => {
+    categoriesQuery.refetch?.()
+    productsQuery.refetch?.()
+  }
   const role = useAuthStore((s) => s.role)
 
   const canManage = can(role, 'manageCategories')
@@ -148,22 +153,11 @@ export default function Categories() {
 
       {/* Grid of categories — explicit loading / error / empty / data states */}
       {error ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">⚠️</span>
-          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
-          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
-        </div>
+        <ErrorState onRetry={retry} />
       ) : loading ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
-          <p className="mt-3 text-sm text-slate-400">Kategoriyalar yuklanmoqda…</p>
-        </div>
+        <LoadingState label="Kategoriyalar yuklanmoqda…" />
       ) : categories.length === 0 ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">🏷️</span>
-          <p className="mt-3 text-lg font-semibold">Hech narsa topilmadi</p>
-          <p className="text-sm text-slate-400">Hozircha kategoriyalar yo'q.</p>
-        </div>
+        <EmptyState icon="🏷️" title="Hech narsa topilmadi" hint="Hozircha kategoriyalar yo'q." />
       ) : (
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {categories.map((c) => (

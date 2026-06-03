@@ -9,6 +9,7 @@ import { formatSom, formatDateTime } from '../lib/utils'
  */
 export default function PriceHistory({ productId }) {
   const [state, setState] = useState({ rows: undefined, error: null })
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -17,12 +18,12 @@ export default function PriceHistory({ productId }) {
       .then((rows) => active && setState({ rows, error: null }))
       .catch((error) => {
         console.error('[PriceHistory] load failed:', error)
-        if (active) setState({ rows: [], error })
+        if (active) setState({ rows: undefined, error })
       })
     return () => {
       active = false
     }
-  }, [productId])
+  }, [productId, reloadKey])
 
   const { rows, error } = state
 
@@ -30,7 +31,16 @@ export default function PriceHistory({ productId }) {
     <div className="rounded-xl border border-white/10 bg-ink-950/40 p-3">
       <p className="mb-2 text-xs font-semibold text-slate-300">📈 Narx tarixi</p>
       {error ? (
-        <p className="text-xs text-rose-300">Tarixni yuklab bo'lmadi.</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-rose-300">Tarixni yuklab bo'lmadi.</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="btn-ghost px-2.5 py-1 text-xs"
+          >
+            🔄 Qayta urinish
+          </button>
+        </div>
       ) : rows === undefined ? (
         <p className="text-xs text-slate-500">Yuklanmoqda…</p>
       ) : rows.length === 0 ? (

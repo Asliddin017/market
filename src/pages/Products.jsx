@@ -12,6 +12,7 @@ import ProductCard from '../components/ProductCard'
 import ProductForm from '../components/ProductForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import BackupControls from '../components/BackupControls'
+import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 
 // How many products to render at once. Keeps the DOM light even with thousands
 // of products; "Ko'proq" reveals the next page. Avoids long main-thread work.
@@ -30,6 +31,10 @@ export default function Products() {
   const categories = categoriesQuery.data ?? EMPTY
   const loading = productsQuery.loading || categoriesQuery.loading
   const error = productsQuery.error || categoriesQuery.error
+  const retry = () => {
+    productsQuery.refetch?.()
+    categoriesQuery.refetch?.()
+  }
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
   const setThemeKey = useUiStore((s) => s.setThemeKey)
@@ -140,24 +145,13 @@ export default function Products() {
         ))}
       </div>
 
-      {/* Grid */}
+      {/* Grid — explicit loading / error / empty / data states */}
       {error ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">⚠️</span>
-          <p className="mt-3 text-lg font-semibold">Ma'lumotlarni yuklab bo'lmadi</p>
-          <p className="text-sm text-slate-400">Sahifani qayta yuklab ko'ring.</p>
-        </div>
+        <ErrorState onRetry={retry} />
       ) : loading ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand-500/30 border-t-brand-400" />
-          <p className="mt-3 text-sm text-slate-400">Mahsulotlar yuklanmoqda…</p>
-        </div>
+        <LoadingState label="Mahsulotlar yuklanmoqda…" />
       ) : results.length === 0 ? (
-        <div className="glass flex flex-col items-center justify-center rounded-3xl py-20 text-center">
-          <span className="text-5xl">🔍</span>
-          <p className="mt-3 text-lg font-semibold">Hech narsa topilmadi</p>
-          <p className="text-sm text-slate-400">Boshqa so'z bilan urinib ko'ring.</p>
-        </div>
+        <EmptyState title="Hech narsa topilmadi" hint="Boshqa so'z bilan urinib ko'ring." />
       ) : (
         <>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

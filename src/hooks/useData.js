@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import { useAuthStore } from '../store/authStore'
 import { slugify, toTitleCase } from '../lib/utils'
 
 // ---------------------------------------------------------------------------
@@ -46,22 +47,66 @@ export const mapProfile = (r) => ({
 })
 
 // ---- shared live-table hook (fetch + realtime refetch) --------------------
-function useLiveTable(table, loader) {
+//
+// Robust against network latency / live Supabase (the cause of "intermittent
+// blank pages"):
+//   * loading starts true and only flips false after the FIRST response
+//     (success OR error). "still loading" (data === undefined) is never the same
+//     as "loaded + empty" (data === []), so a page can always tell them apart.
+//   * fetching is gated on auth being ready, so we never query before the
+//     session/token is restored (an un-authed query can come back empty under
+//     RLS and blank the page on F5).
+//   * the first fetch retries once on a transient error (e.g. token not yet
+//     propagated) before surfacing an error.
+//   * a FAILED background/realtime refetch keeps the data already on screen
+//     instead of wiping it to undefined — a reconnect blip never blanks a page.
+//   * refetch() lets the UI offer a "Qayta urinish" (retry) button.
+//
+// Exported for testing.
+export function useLiveTable(table, loader) {
   const loaderRef = useRef(loader)
   loaderRef.current = loader
 
+  // Only fetch once the Supabase session + profile are resolved.
+  const authReady = useAuthStore((s) => s.ready)
+
   const [state, setState] = useState({ data: undefined, loading: true, error: null })
+  // Mirror of state so the async runner can decide whether data is already on
+  // screen (background refetch) without re-subscribing on every change.
+  const stateRef = useRef(state)
+  stateRef.current = state
+
+  const [reloadKey, setReloadKey] = useState(0)
+  const refetch = useCallback(() => {
+    setState({ data: undefined, loading: true, error: null })
+    setReloadKey((k) => k + 1)
+  }, [])
 
   useEffect(() => {
+    if (!authReady) return // wait for auth before the first query
     let active = true
 
-    const run = async () => {
+    const run = async (attempt = 0) => {
       try {
         const data = await loaderRef.current()
         if (active) setState({ data, loading: false, error: null })
       } catch (error) {
+        if (!active) return
+        // If data is already on screen this was a background / realtime refetch
+        // — keep showing what we have rather than blanking to an error state.
+        if (stateRef.current.data !== undefined) {
+          console.error(`[useLiveTable:${table}] background refetch failed (kept current data):`, error)
+          return
+        }
+        // First load failed: retry once (covers a not-yet-propagated token),
+        // then surface the error so the page can show a retry button.
+        if (attempt === 0) {
+          console.error(`[useLiveTable:${table}] load failed, retrying once:`, error)
+          setTimeout(() => { if (active) run(1) }, 400)
+          return
+        }
         console.error(`[useLiveTable:${table}] load failed:`, error)
-        if (active) setState({ data: undefined, loading: false, error })
+        setState({ data: undefined, loading: false, error })
       }
     }
 
@@ -78,9 +123,9 @@ function useLiveTable(table, loader) {
       active = false
       supabase.removeChannel(channel)
     }
-  }, [table])
+  }, [table, authReady, reloadKey])
 
-  return state
+  return { ...state, refetch }
 }
 
 /** Live list of categories (name-sorted). Returns { data, loading, error }. */
