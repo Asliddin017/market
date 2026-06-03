@@ -17,13 +17,17 @@ import BackupControls from '../components/BackupControls'
 // of products; "Ko'proq" reveals the next page. Avoids long main-thread work.
 const PAGE_SIZE = 24
 
+// Stable empty fallbacks so memo deps don't change identity every render while
+// data is still loading (a fresh `[]` each render would defeat memoization).
+const EMPTY = []
+
 export default function Products() {
   const productsQuery = useProducts()
   const categoriesQuery = useCategories()
   // Coalesce to safe arrays so every downstream memo/render works whether
   // loading, empty, or populated. `loading`/`error` drive the explicit states.
-  const products = productsQuery.data ?? []
-  const categories = categoriesQuery.data ?? []
+  const products = productsQuery.data ?? EMPTY
+  const categories = categoriesQuery.data ?? EMPTY
   const loading = productsQuery.loading || categoriesQuery.loading
   const error = productsQuery.error || categoriesQuery.error
   const role = useAuthStore((s) => s.role)
@@ -82,9 +86,15 @@ export default function Products() {
     setFormOpen(true)
   }
   async function confirmDelete() {
-    if (toDelete) {
-      await deleteProduct(toDelete.id)
-      setToDelete(null)
+    if (!toDelete) return
+    const target = toDelete
+    setToDelete(null)
+    try {
+      await deleteProduct(target.id)
+    } catch (err) {
+      console.error('[products] delete failed:', err)
+      setToast("O'chirishda xatolik yuz berdi")
+      setTimeout(() => setToast(''), 2500)
     }
   }
   function handleAddToCart(p) {

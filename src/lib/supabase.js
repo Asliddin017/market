@@ -18,7 +18,7 @@ export const isSupabaseConfigured = Boolean(url && anonKey)
 if (!isSupabaseConfigured) {
   // Surfaced in the console and via a banner; we still create a client so the
   // app doesn't hard-crash at import time.
-  // eslint-disable-next-line no-console
+   
   console.error(
     'Supabase sozlanmagan: VITE_SUPABASE_URL va VITE_SUPABASE_ANON_KEY ni .env.local ' +
       "ga qo'shing (README ga qarang).",

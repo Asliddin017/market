@@ -9,11 +9,14 @@ import { formatDateTime } from '../lib/utils'
 
 const ICONS = ['⚡', '🥛', '🍞', '🍎', '🥕', '🍫', '🧃', '📦', '🧀', '🍗', '🐟', '🧂', '☕', '🍷']
 
+// Stable empty fallback so the counts memo keeps identity while data loads.
+const EMPTY = []
+
 export default function Categories() {
   const categoriesQuery = useCategories()
   const productsQuery = useProducts()
-  const categories = categoriesQuery.data ?? []
-  const products = productsQuery.data ?? []
+  const categories = categoriesQuery.data ?? EMPTY
+  const products = productsQuery.data ?? EMPTY
   const loading = categoriesQuery.loading || productsQuery.loading
   const error = categoriesQuery.error || productsQuery.error
   const role = useAuthStore((s) => s.role)
@@ -49,19 +52,37 @@ export default function Categories() {
     setEditing(null)
     setName('')
   }
+  function flashWarn(text) {
+    setWarn(text)
+    setTimeout(() => setWarn(''), 4000)
+  }
   async function submit(e) {
     e.preventDefault()
     if (!name.trim()) return
-    await saveCategory({ id: editing?.id, name, icon })
-    cancel()
+    try {
+      await saveCategory({ id: editing?.id, name, icon })
+      cancel()
+    } catch (err) {
+      console.error('[categories] save failed:', err)
+      flashWarn(
+        String(err?.message ?? '').toLowerCase().includes('duplicate')
+          ? 'Bu nomli kategoriya allaqachon mavjud.'
+          : 'Saqlashda xatolik yuz berdi.',
+      )
+    }
   }
   async function confirmDelete() {
-    const res = await deleteCategory(toDelete.id)
-    if (!res.ok) {
-      setWarn(`"${toDelete.name}" ichida ${res.used} ta mahsulot bor. Avval ularni o'chiring yoki ko'chiring.`)
-      setTimeout(() => setWarn(''), 4000)
-    }
+    const target = toDelete
     setToDelete(null)
+    try {
+      const res = await deleteCategory(target.id)
+      if (!res.ok) {
+        flashWarn(`"${target.name}" ichida ${res.used} ta mahsulot bor. Avval ularni o'chiring yoki ko'chiring.`)
+      }
+    } catch (err) {
+      console.error('[categories] delete failed:', err)
+      flashWarn("O'chirishda xatolik yuz berdi.")
+    }
   }
 
   return (

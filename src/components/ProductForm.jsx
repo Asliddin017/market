@@ -47,6 +47,7 @@ export default function ProductForm({ open, onClose, product, categories }) {
       await saveProduct(form)
       onClose()
     } catch (err) {
+      console.error('[product-form] save failed:', err)
       setError('Saqlashda xatolik yuz berdi.')
     } finally {
       setBusy(false)

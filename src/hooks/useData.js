@@ -17,8 +17,8 @@ import { slugify, toTitleCase } from '../lib/utils'
 //   error   -> error is set and console.error'd (never a silent blank page)
 // ---------------------------------------------------------------------------
 
-// ---- row <-> app mappers --------------------------------------------------
-const mapProduct = (r) => ({
+// ---- row <-> app mappers (exported for testing) ---------------------------
+export const mapProduct = (r) => ({
   id: r.id,
   name: r.name,
   categoryId: r.category_id,
@@ -29,7 +29,7 @@ const mapProduct = (r) => ({
   updatedAt: r.updated_at,
 })
 
-const mapCategory = (r) => ({
+export const mapCategory = (r) => ({
   id: r.id,
   name: r.name,
   slug: r.slug,
@@ -38,7 +38,7 @@ const mapCategory = (r) => ({
   updatedAt: r.updated_at,
 })
 
-const mapProfile = (r) => ({
+export const mapProfile = (r) => ({
   id: r.id,
   username: r.username,
   role: r.role,

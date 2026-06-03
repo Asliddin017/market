@@ -31,7 +31,7 @@ export function toTitleCase(value = '') {
     .toLocaleLowerCase()
     // A word starts at the string start or right after a space, hyphen, slash
     // or opening paren. Uppercase the first *letter* found there.
-    .replace(/(^|[\s\-\/(])(\p{L})/gu, (_m, sep, ch) => sep + ch.toLocaleUpperCase())
+    .replace(/(^|[\s\-/(])(\p{L})/gu, (_m, sep, ch) => sep + ch.toLocaleUpperCase())
 }
 
 /** Format a number as Uzbek so'm, e.g. 18000 -> "18 000 so'm". */

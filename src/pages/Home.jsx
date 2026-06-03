@@ -13,11 +13,14 @@ const fadeUp = {
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.5 } }),
 }
 
+// Stable empty fallbacks so memo deps keep identity while data is loading.
+const EMPTY = []
+
 export default function Home() {
   const productsQuery = useProducts()
   const categoriesQuery = useCategories()
-  const products = productsQuery.data ?? []
-  const categories = categoriesQuery.data ?? []
+  const products = productsQuery.data ?? EMPTY
+  const categories = categoriesQuery.data ?? EMPTY
   const loading = productsQuery.loading || categoriesQuery.loading
   const error = productsQuery.error || categoriesQuery.error
   const role = useAuthStore((s) => s.role)

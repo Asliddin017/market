@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUsers, updateUserRole, getUserCart } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
@@ -19,16 +19,40 @@ function UserRow({ user, isSelf }) {
   const [open, setOpen] = useState(false)
   const [cart, setCart] = useState(null)
   const [loadingCart, setLoadingCart] = useState(false)
-  const meta = ROLE_META[user.role]
+  const [cartError, setCartError] = useState(false)
+  // Optimistic role so the <select> reflects the change immediately (and reverts
+  // if the update fails) — the users list does not refetch on its own.
+  const [role, setRole] = useState(user.role)
+  useEffect(() => setRole(user.role), [user.role])
+  const meta = ROLE_META[role]
+
+  async function changeRole(next) {
+    const prev = role
+    setRole(next) // optimistic
+    try {
+      await updateUserRole(user.id, next)
+    } catch (err) {
+      console.error('[users] role update failed:', err)
+      setRole(prev) // revert on failure
+    }
+  }
 
   async function toggleCart() {
     const next = !open
     setOpen(next)
     if (next && cart === null) {
       setLoadingCart(true)
-      const row = await getUserCart(user.id)
-      setCart(row?.items ?? [])
-      setLoadingCart(false)
+      setCartError(false)
+      try {
+        const row = await getUserCart(user.id)
+        setCart(row?.items ?? [])
+      } catch (err) {
+        console.error('[users] cart load failed:', err)
+        setCartError(true)
+        setCart([])
+      } finally {
+        setLoadingCart(false)
+      }
     }
   }
 
@@ -48,17 +72,17 @@ function UserRow({ user, isSelf }) {
           <p className="text-xs text-slate-400">Ro'yxatdan o'tgan: {formatDateTime(user.createdAt)}</p>
         </div>
 
-        <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-semibold sm:inline ${roleBadge[user.role]}`}>
-          {meta?.label ?? user.role}
+        <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-semibold sm:inline ${roleBadge[role]}`}>
+          {meta?.label ?? role}
         </span>
 
         {/* Role change */}
         <label className="flex items-center gap-1.5 text-xs text-slate-400">
           Rol:
           <select
-            value={user.role}
+            value={role}
             disabled={isSelf}
-            onChange={(e) => updateUserRole(user.id, e.target.value)}
+            onChange={(e) => changeRole(e.target.value)}
             title={isSelf ? "O'z rolingizni o'zgartira olmaysiz" : 'Rolni o\'zgartirish'}
             className="rounded-lg border border-white/10 bg-ink-900/60 px-2 py-1.5 text-xs text-slate-100 disabled:opacity-40"
           >
@@ -68,7 +92,7 @@ function UserRow({ user, isSelf }) {
           </select>
         </label>
 
-        {user.role === ROLES.CLIENT && (
+        {role === ROLES.CLIENT && (
           <button onClick={toggleCart} className="btn-ghost px-3 py-1.5 text-xs">
             🛒 Savatcha {open ? '▲' : '▼'}
           </button>
@@ -77,7 +101,7 @@ function UserRow({ user, isSelf }) {
 
       {/* Client cart viewer */}
       <AnimatePresence>
-        {open && user.role === ROLES.CLIENT && (
+        {open && role === ROLES.CLIENT && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -86,6 +110,8 @@ function UserRow({ user, isSelf }) {
           >
             {loadingCart ? (
               <p className="text-sm text-slate-400">Yuklanmoqda…</p>
+            ) : cartError ? (
+              <p className="text-sm text-rose-300">Savatchani yuklab bo'lmadi.</p>
             ) : !cart || cart.length === 0 ? (
               <p className="text-sm text-slate-400">Savatcha bo'sh.</p>
             ) : (
