@@ -118,6 +118,31 @@ describe('useLiveTable robustness (no blank pages)', () => {
     await waitFor(() => expect(result.current.data).toEqual([{ id: 2 }]))
   })
 
+  it('fetches AGAIN on remount — navigation away and back (#1)', async () => {
+    const loader = vi.fn().mockResolvedValue([{ id: 1 }])
+
+    const first = renderHook(() => useLiveTable('products', loader))
+    await waitFor(() => expect(first.result.current.data).toEqual([{ id: 1 }]))
+    expect(loader).toHaveBeenCalledTimes(1)
+    first.unmount()
+
+    // Remount (as when navigating back to the page): a brand-new fetch starting
+    // from a fresh loading state — never reuses stale empty/undefined state.
+    const second = renderHook(() => useLiveTable('products', loader))
+    expect(second.result.current.loading).toBe(true)
+    expect(second.result.current.data).toBeUndefined()
+    await waitFor(() => expect(second.result.current.data).toEqual([{ id: 1 }]))
+    expect(loader).toHaveBeenCalledTimes(2)
+  })
+
+  it('still fetches on a later mount when auth was already ready (#3)', async () => {
+    useAuthStore.setState({ ready: true }) // ready from a previous page
+    const loader = vi.fn().mockResolvedValue([{ id: 7 }])
+    const { result } = renderHook(() => useLiveTable('categories', loader))
+    await waitFor(() => expect(result.current.data).toEqual([{ id: 7 }]))
+    expect(loader).toHaveBeenCalledTimes(1)
+  })
+
   it('removes the realtime channel on unmount (no leak)', async () => {
     const loader = vi.fn().mockResolvedValue([])
     const { unmount } = renderHook(() => useLiveTable('products', loader))
