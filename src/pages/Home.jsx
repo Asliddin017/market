@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useProducts, useCategories } from '../hooks/useData'
+import { useProducts, useCategories, useBestSellers } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
 import { ROLE_META, can } from '../lib/roles'
@@ -34,7 +34,13 @@ export default function Home() {
 
   const canAddToCart = can(role, 'useCart')
 
+  // Best-sellers (server-aggregated across completed orders). Cigarettes are
+  // already excluded for clients (they're absent from `products`).
+  const bestQuery = useBestSellers(8)
+  const bestRows = bestQuery.data ?? EMPTY
+
   const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
+  const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
 
   // Price-focused figures (no stock tracking).
   const { avgPrice, minPrice } = useMemo(() => {
@@ -44,11 +50,22 @@ export default function Home() {
     return { avgPrice: Math.round(sum / prices.length), minPrice: Math.min(...prices) }
   }, [products])
 
-  // A few highlighted products (newest first).
+  // A few highlighted products (newest first) — used as the fallback when there
+  // are no sales yet.
   const featured = useMemo(
     () => products.slice().sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt)).slice(0, 4),
     [products],
   )
+
+  // Best-selling products: resolve ranked product ids to products we can show
+  // (drops deleted/hidden ones), keep top 4. Falls back to newest when empty.
+  const bestSellers = useMemo(
+    () => bestRows.map((r) => productById.get(r.productId)).filter(Boolean).slice(0, 4),
+    [bestRows, productById],
+  )
+  const hasBestSellers = bestSellers.length > 0
+  const highlight = hasBestSellers ? bestSellers : featured
+  const highlightTitle = hasBestSellers ? "Eng ko'p sotilgan" : "Yangi qo'shilganlar"
 
   const stats = [
     { label: 'Mahsulotlar', value: products.length, icon: '📦', accent: 'text-brand-300' },
@@ -130,15 +147,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured products */}
-      {featured.length > 0 && (
+      {/* Best-sellers (falls back to newest when there are no sales yet) */}
+      {highlight.length > 0 && (
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-xl font-bold">Yangi qo'shilganlar</h2>
+            <h2 className="font-display text-xl font-bold">
+              {hasBestSellers && '🔥 '}{highlightTitle}
+            </h2>
             <Link to="/products" className="text-sm text-brand-300 hover:underline">Barchasi →</Link>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featured.map((p) => {
+            {highlight.map((p) => {
               const cat = catById.get(p.categoryId)
               return (
                 <ProductCard

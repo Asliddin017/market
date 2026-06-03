@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore, selectTotal, selectCount, cartLineTotal } from '../store/cartStore'
 import { useAuthStore } from '../store/authStore'
-import { createOrderFromCart } from '../hooks/useData'
+import { createOrderFromCart, getLastOrderContact } from '../hooks/useData'
 import ProductImage from '../components/ProductImage'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
+import { isValidUzPhone } from '../lib/phone'
 import { SELL_MODE, canEditPrice, canSellByPiece, isPieceMode, pieceModeLabel } from '../lib/pricing'
 
 export default function CartPage() {
@@ -32,15 +33,51 @@ export default function CartPage() {
   const [done, setDone] = useState(false)
   const [placing, setPlacing] = useState(false)
   const [placeError, setPlaceError] = useState('')
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [contactError, setContactError] = useState('')
+
+  // Prefill name + phone from the client's most recent order (editable).
+  useEffect(() => {
+    let active = true
+    if (!userId) return
+    getLastOrderContact(userId)
+      .then((c) => {
+        if (active && c) {
+          setName((n) => n || c.name || '')
+          setPhone((p) => p || c.phone || '')
+        }
+      })
+      .catch((err) => console.error('[cart] prefill contact failed:', err))
+    return () => {
+      active = false
+    }
+  }, [userId])
 
   async function checkout() {
     if (placing || items.length === 0) return
     setPlaceError('')
+    // Name + phone are mandatory and validated before we touch the server.
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setContactError('Ismingizni kiriting.')
+      return
+    }
+    if (!isValidUzPhone(phone)) {
+      setContactError("Telefon raqamini to'g'ri kiriting (masalan +998 90 123 45 67).")
+      return
+    }
+    setContactError('')
     setPlacing(true)
     // Snapshot the items BEFORE clearing the cart (clear empties the store).
     const snapshot = items.map((i) => ({ ...i }))
     try {
-      const orderId = await createOrderFromCart({ clientId: userId, items: snapshot })
+      const orderId = await createOrderFromCart({
+        clientId: userId,
+        items: snapshot,
+        clientName: trimmedName,
+        clientPhone: phone,
+      })
       setDone(true)
       await clear()
       // Brief success flash, then jump to the new order (receipt-to-be).
@@ -221,6 +258,36 @@ export default function CartPage() {
                   <span className="text-2xl font-extrabold text-brand-300">{formatSom(total)}</span>
                 </div>
               </div>
+
+              {/* Mandatory contact details for pickup. */}
+              <div className="space-y-2 border-t border-white/10 pt-3">
+                <div>
+                  <label className="label" htmlFor="checkout-name">Ism *</label>
+                  <input
+                    id="checkout-name"
+                    className="input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ismingiz"
+                    autoComplete="name"
+                  />
+                </div>
+                <div>
+                  <label className="label" htmlFor="checkout-phone">Telefon raqami *</label>
+                  <input
+                    id="checkout-phone"
+                    className="input"
+                    type="tel"
+                    inputMode="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+998 90 123 45 67"
+                    autoComplete="tel"
+                  />
+                </div>
+                {contactError && <p className="text-xs text-rose-300">{contactError}</p>}
+              </div>
+
               {placeError && <p className="text-xs text-rose-300">{placeError}</p>}
               <button onClick={checkout} disabled={placing} className="btn-gold w-full">
                 {placing ? 'Yuborilmoqda…' : '✓ Buyurtma berish'}

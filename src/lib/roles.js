@@ -45,6 +45,8 @@ const PERMISSIONS = {
     viewOrders: true, // sees ALL orders
     manageOrders: true, // change status, mark a line "yo'q"
     deleteOrders: true,
+    manageContacts: true, // edit "Aloqa" contacts
+    viewStats: true, // "Statistika" page
   },
   [ROLES.SELLER]: {
     manageProducts: true,
@@ -56,6 +58,8 @@ const PERMISSIONS = {
     viewOrders: true, // sees ALL orders
     manageOrders: true, // change status, mark a line "yo'q"
     deleteOrders: false,
+    manageContacts: false,
+    viewStats: true, // "Statistika" page
   },
   [ROLES.CLIENT]: {
     manageProducts: false,
@@ -67,6 +71,8 @@ const PERMISSIONS = {
     viewOrders: true, // sees only OWN orders (enforced by RLS)
     manageOrders: false,
     deleteOrders: false,
+    manageContacts: false,
+    viewStats: false,
   },
 }
 

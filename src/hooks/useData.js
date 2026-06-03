@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { slugify, toTitleCase } from '../lib/utils'
 import { resolveCategoryIcon } from '../lib/categoryIcons'
+import { isStaff, visibleCategories } from '../lib/visibility'
+import { normalizePhone } from '../lib/phone'
 
 // ---------------------------------------------------------------------------
 // Data access layer (Supabase).
@@ -43,6 +45,20 @@ export const mapCategory = (r) => ({
   // Icon is resolved from the NAME (single source of truth) so it's always
   // correct + future-proof — the stored `emoji` column is not used for display.
   icon: resolveCategoryIcon(r.name),
+  // Categories flagged hidden_for_clients (e.g. Sigaretlar) are banned for the
+  // client role — RLS already hides them; the UI double-checks via this flag.
+  hiddenForClients: r.hidden_for_clients ?? false,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+})
+
+export const mapContact = (r) => ({
+  id: r.id,
+  label: r.label ?? null,
+  name: r.name,
+  phone: r.phone,
+  isPrimary: r.is_primary ?? false,
+  sortOrder: r.sort_order ?? 0,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 })
@@ -78,6 +94,9 @@ export const mapOrder = (r) => ({
   status: r.status,
   total: r.total,
   note: r.note ?? null,
+  // Name + phone the client gave at checkout (shown to staff; tap-to-call).
+  customerName: r.client_name ?? null,
+  customerPhone: r.client_phone ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
   readyAt: r.ready_at ?? null,
@@ -170,7 +189,9 @@ export function useLiveTable(table, loader) {
   return { ...state, refetch }
 }
 
-/** Live list of categories (name-sorted). Returns { data, loading, error }. */
+/** Live list of categories (name-sorted). Returns { data, loading, error }.
+ *  Client-restricted categories (hidden_for_clients) are dropped for clients —
+ *  RLS already hides them server-side; this is belt-and-suspenders in the UI. */
 export function useCategories() {
   return useLiveTable('categories', async () => {
     const { data, error } = await supabase
@@ -178,19 +199,25 @@ export function useCategories() {
       .select('*')
       .order('name', { ascending: true })
     if (error) throw error
-    return data.map(mapCategory)
+    return visibleCategories(data.map(mapCategory), useAuthStore.getState().role)
   })
 }
 
-/** Live list of products (oldest first, matches the old createdAt order). */
+/** Live list of products (oldest first, matches the old createdAt order).
+ *  Products in a client-hidden category (e.g. cigarettes) are dropped for the
+ *  client role here too — independently of the category list — using the joined
+ *  hidden flag, so the UI never shows a banned product even if RLS were loosened. */
 export function useProducts() {
   return useLiveTable('products', async () => {
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('*, categories ( hidden_for_clients )')
       .order('created_at', { ascending: true })
     if (error) throw error
-    return data.map(mapProduct)
+    const rows = isStaff(useAuthStore.getState().role)
+      ? data
+      : data.filter((r) => !r.categories?.hidden_for_clients)
+    return rows.map(mapProduct)
   })
 }
 
@@ -313,13 +340,18 @@ export function useOrder(orderId) {
  *   { id (productId), name, unit, price (original), customPrice|null, qty }
  * The orders.total is filled in by the DB trigger from the inserted lines.
  */
-export async function createOrderFromCart({ clientId, items, note = null }) {
+export async function createOrderFromCart({ clientId, items, note = null, clientName, clientPhone }) {
   if (!clientId) throw new Error('clientId kerak')
   if (!items?.length) throw new Error('Savatcha bo‘sh')
 
+  const name = String(clientName ?? '').trim()
+  if (!name) throw new Error('Ism kerak')
+  const phone = normalizePhone(clientPhone)
+  if (!phone) throw new Error("Telefon raqami noto'g'ri")
+
   const { data: order, error } = await supabase
     .from('orders')
-    .insert({ client_id: clientId, status: 'buyurtma_berildi', note })
+    .insert({ client_id: clientId, status: 'buyurtma_berildi', note, client_name: name, client_phone: phone })
     .select('id')
     .single()
   if (error) throw error
@@ -391,6 +423,144 @@ export async function setOrderItemCustomPrice(itemId, customPrice) {
 /** Admin: delete an order (line items cascade). */
 export async function deleteOrder(orderId) {
   const { error } = await supabase.from('orders').delete().eq('id', orderId)
+  if (error) throw error
+}
+
+/** The client's last-used checkout name + phone (to prefill the next order). */
+export async function getLastOrderContact(clientId) {
+  if (!clientId) return null
+  const { data, error } = await supabase
+    .from('orders')
+    .select('client_name, client_phone')
+    .eq('client_id', clientId)
+    .not('client_name', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return { name: data.client_name ?? '', phone: data.client_phone ?? '' }
+}
+
+// ---- Statistics + best-sellers (server-side aggregates via RPC) ------------
+//
+// These call SECURITY DEFINER SQL functions (supabase/update_2026_06.sql) so the
+// heavy aggregation runs in the DB and returns only small, non-PII result sets.
+// best_sellers is callable by anyone; the stats RPCs are staff-only (the SQL
+// raises 'forbidden' for clients, and the Statistika route is staff-gated too).
+
+/** Top products by quantity sold across completed orders: [{productId, qtySold, revenue}]. */
+export async function getBestSellers(limitN = 8) {
+  const { data, error } = await supabase.rpc('best_sellers', { limit_n: limitN })
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    productId: r.product_id,
+    qtySold: Number(r.qty_sold) || 0,
+    revenue: Number(r.revenue) || 0,
+  }))
+}
+
+/** Headline stats object (revenue today/week/month/total + completed counts). */
+export async function getSalesStats() {
+  const { data, error } = await supabase.rpc('sales_stats')
+  if (error) throw error
+  return data
+}
+
+/** Revenue per day for the last N days (gap-filled): [{ day, revenue }]. */
+export async function getRevenueDaily(days = 30) {
+  const { data, error } = await supabase.rpc('revenue_daily', { days })
+  if (error) throw error
+  return (data ?? []).map((r) => ({ day: r.day, revenue: Number(r.revenue) || 0 }))
+}
+
+/** Top products with revenue (staff): [{ productId, name, qtySold, revenue }]. */
+export async function getTopProducts(limitN = 5) {
+  const { data, error } = await supabase.rpc('top_products', { limit_n: limitN })
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    productId: r.product_id,
+    name: r.name,
+    qtySold: Number(r.qty_sold) || 0,
+    revenue: Number(r.revenue) || 0,
+  }))
+}
+
+/** Top categories with revenue (staff): [{ categoryId, name, qtySold, revenue }]. */
+export async function getTopCategories(limitN = 5) {
+  const { data, error } = await supabase.rpc('top_categories', { limit_n: limitN })
+  if (error) throw error
+  return (data ?? []).map((r) => ({
+    categoryId: r.category_id,
+    name: r.name,
+    qtySold: Number(r.qty_sold) || 0,
+    revenue: Number(r.revenue) || 0,
+  }))
+}
+
+/** Live best-sellers (refetches when any order changes). { data, loading, error }. */
+export function useBestSellers(limitN = 8) {
+  return useLiveTable('orders', () => getBestSellers(limitN))
+}
+
+/**
+ * Live statistics bundle for the Statistika page. Refetches on any order change.
+ * Returns { data: { stats, daily, products, categories }, loading, error }.
+ */
+export function useStats({ days = 30, topN = 5 } = {}) {
+  return useLiveTable('orders', async () => {
+    const [stats, daily, products, categories] = await Promise.all([
+      getSalesStats(),
+      getRevenueDaily(days),
+      getTopProducts(topN),
+      getTopCategories(topN),
+    ])
+    return { stats, daily, products, categories }
+  })
+}
+
+// ---- Contacts ("Aloqa") ----------------------------------------------------
+
+/** Live contacts list (primary first). { data, loading, error }. */
+export function useContacts() {
+  return useLiveTable('contacts', async () => {
+    const { data, error } = await supabase
+      .from('contacts')
+      .select('*')
+      .order('is_primary', { ascending: false })
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true })
+    if (error) throw error
+    return data.map(mapContact)
+  })
+}
+
+/** Admin: create/update a contact. Phone is normalized to +998XXXXXXXXX. */
+export async function saveContact(contact) {
+  const name = String(contact?.name ?? '').trim()
+  if (!name) throw new Error('Ism kerak')
+  const phone = normalizePhone(contact?.phone)
+  if (!phone) throw new Error("Telefon raqami noto'g'ri")
+  const payload = {
+    label: contact.label?.trim() || null,
+    name,
+    phone,
+    is_primary: Boolean(contact.isPrimary),
+    sort_order: Number(contact.sortOrder) || 0,
+  }
+  if (contact.id) {
+    const { error } = await supabase.from('contacts').update(payload).eq('id', contact.id)
+    if (error) throw error
+    return contact.id
+  }
+  const { data, error } = await supabase.from('contacts').insert(payload).select('id').single()
+  if (error) throw error
+  return data.id
+}
+
+/** Admin: delete a contact. The primary contact cannot be deleted. */
+export async function deleteContact(id) {
+  const { error } = await supabase.from('contacts').delete().eq('id', id)
   if (error) throw error
 }
 

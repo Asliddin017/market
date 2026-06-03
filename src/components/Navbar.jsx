@@ -22,7 +22,9 @@ export default function Navbar() {
       icon: '🧾',
       show: can(role, 'viewOrders'),
     },
+    { to: '/statistika', label: 'Statistika', icon: '📊', show: can(role, 'viewStats') },
     { to: '/users', label: 'Foydalanuvchilar', icon: '👥', show: can(role, 'manageUsers') },
+    { to: '/contact', label: 'Aloqa', icon: '📞', show: true },
     { to: '/cart', label: 'Savatcha', icon: '🛒', show: can(role, 'useCart') },
   ].filter((l) => l.show)
 

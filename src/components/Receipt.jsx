@@ -1,4 +1,5 @@
 import { formatSom, formatDateTime } from '../lib/utils'
+import { formatPhone } from '../lib/phone'
 import { effectivePrice, lineTotal, orderTotal, splitAvailability } from '../lib/orders'
 import { canSellByPiece, isPieceMode, displayUnit } from '../lib/pricing'
 
@@ -23,6 +24,13 @@ export default function Receipt({ order }) {
         <p className="mt-0.5 text-[11px] text-slate-500">
           Buyurtma №: {String(order?.id ?? '').slice(0, 8).toUpperCase()}
         </p>
+        {(order?.customerName || order?.customerPhone) && (
+          <p className="mt-0.5 text-[11px] text-slate-400">
+            {order?.customerName}
+            {order?.customerName && order?.customerPhone && ' · '}
+            {order?.customerPhone && formatPhone(order.customerPhone)}
+          </p>
+        )}
       </div>
 
       <div className="my-4 border-t border-dashed border-white/20" />

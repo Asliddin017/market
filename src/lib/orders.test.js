@@ -68,6 +68,30 @@ describe('orderTotal', () => {
   })
 })
 
+describe('seller price override on an order line (Change #4)', () => {
+  it('seller correcting a kg line replaces the price and recomputes the total', () => {
+    // Client ordered a kg line at a custom 15000; the real price is 13000.
+    const client = [
+      line({ id: 'kg', originalPrice: 13000, customPrice: 15000, quantity: 2 }), // 30000
+      line({ id: 'x', unit: 'dona', originalPrice: 5000, quantity: 1 }), // 5000
+    ]
+    expect(orderTotal(client)).toBe(35000)
+
+    // Seller corrects the kg line to 13000 (override replaces the client's price).
+    const corrected = [
+      line({ id: 'kg', originalPrice: 13000, customPrice: 13000, quantity: 2 }), // 26000
+      line({ id: 'x', unit: 'dona', originalPrice: 5000, quantity: 1 }), // 5000
+    ]
+    expect(lineTotal(corrected[0])).toBe(26000)
+    expect(orderTotal(corrected)).toBe(31000) // total recomputed authoritatively
+  })
+
+  it('a dona line is fixed — seller cannot override its price (only quantity)', () => {
+    const dona = line({ unit: 'dona', originalPrice: 5000, customPrice: 3000, quantity: 3 })
+    expect(lineTotal(dona)).toBe(15000) // custom_price ignored on dona
+  })
+})
+
 describe('splitAvailability', () => {
   it('separates available vs unavailable lines', () => {
     const items = [line({ id: 'a' }), line({ id: 'b', isAvailable: false })]

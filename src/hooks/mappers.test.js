@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapProduct, mapCategory, mapProfile, mapOrder, mapOrderItem } from './useData'
+import { mapProduct, mapCategory, mapProfile, mapOrder, mapOrderItem, mapContact } from './useData'
 
 describe('row <-> app mappers (snake_case -> camelCase)', () => {
   it('mapProduct maps every field and defaults image to null', () => {
@@ -57,11 +57,32 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       name: 'Sut',
       slug: 'sut',
       icon: '🥛', // resolved from "Sut", not the stored 🍼
+      hiddenForClients: false,
       createdAt: 't',
       updatedAt: 't2',
     })
     expect(mapCategory({ id: 'c2', name: 'Energetik — Banka' }).icon).toBe('⚡')
     expect(mapCategory({ id: 'c3', name: 'Nomalum kategoriya' }).icon).toBe('🛒') // default
+  })
+
+  it('mapCategory carries the hidden_for_clients flag', () => {
+    expect(mapCategory({ id: 'c', name: 'Sigaretlar', hidden_for_clients: true }).hiddenForClients).toBe(true)
+    expect(mapCategory({ id: 'c', name: 'Pishloq' }).hiddenForClients).toBe(false)
+  })
+
+  it('mapContact maps snake_case + defaults', () => {
+    const row = {
+      id: 'k1', label: 'Asosiy', name: 'Asliddin', phone: '+998500170099',
+      is_primary: true, sort_order: 0, created_at: 't', updated_at: 't2',
+    }
+    expect(mapContact(row)).toEqual({
+      id: 'k1', label: 'Asosiy', name: 'Asliddin', phone: '+998500170099',
+      isPrimary: true, sortOrder: 0, createdAt: 't', updatedAt: 't2',
+    })
+    const bare = mapContact({ id: 'k2', name: 'X', phone: '+998901112233' })
+    expect(bare.isPrimary).toBe(false)
+    expect(bare.sortOrder).toBe(0)
+    expect(bare.label).toBeNull()
   })
 
   it('mapProfile maps username/role/createdAt', () => {
@@ -120,6 +141,8 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       created_at: 't1',
       updated_at: 't2',
       ready_at: 't3',
+      client_name: 'Ali Valiyev',
+      client_phone: '+998901234567',
       profiles: { username: 'ali' },
       order_items: [
         { id: 'oi1', order_id: 'o1', product_id: null, name_snapshot: 'A', unit: 'dona', original_price: 13000, custom_price: null, quantity: 2, is_available: true },
@@ -135,6 +158,8 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       updatedAt: 't2',
       readyAt: 't3',
       clientName: 'ali',
+      customerName: 'Ali Valiyev',
+      customerPhone: '+998901234567',
     })
     expect(m.items).toHaveLength(1)
     expect(m.items[0].name).toBe('A')

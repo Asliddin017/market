@@ -22,6 +22,7 @@ import {
   isReceiptReady,
 } from '../lib/orders'
 import { canEditPrice, canSellByPiece, isPieceMode, displayUnit, pieceModeLabel } from '../lib/pricing'
+import { formatPhone, telHref } from '../lib/phone'
 import OrderStatusBadge from '../components/OrderStatusBadge'
 import Receipt from '../components/Receipt'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -140,6 +141,23 @@ export default function OrderDetail() {
             {formatDateTime(order.createdAt)}
             {isStaff && order.clientName && ` · 👤 ${order.clientName}`}
           </p>
+
+          {/* Staff: customer's checkout name + tap-to-call phone. */}
+          {isStaff && (order.customerName || order.customerPhone) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              {order.customerName && (
+                <span className="font-semibold text-slate-200">🙍 {order.customerName}</span>
+              )}
+              {order.customerPhone && (
+                <a
+                  href={`tel:${telHref(order.customerPhone)}`}
+                  className="font-semibold text-brand-300 hover:underline"
+                >
+                  📞 {formatPhone(order.customerPhone)}
+                </a>
+              )}
+            </div>
+          )}
         </div>
         <OrderStatusBadge status={order.status} className="text-sm" />
       </div>

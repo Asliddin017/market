@@ -14,6 +14,8 @@ import CartPage from './pages/CartPage'
 import Orders from './pages/Orders'
 import OrderDetail from './pages/OrderDetail'
 import Users from './pages/Users'
+import Contact from './pages/Contact'
+import Statistika from './pages/Statistika'
 
 export default function App() {
   const user = useAuthStore((s) => s.user)
@@ -94,6 +96,11 @@ export default function App() {
             <Route
               path="/users"
               element={can(role, 'manageUsers') ? <Users /> : <Forbidden />}
+            />
+            <Route path="/contact" element={<Contact />} />
+            <Route
+              path="/statistika"
+              element={can(role, 'viewStats') ? <Statistika /> : <Forbidden />}
             />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
