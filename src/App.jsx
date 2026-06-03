@@ -11,6 +11,8 @@ import Home from './pages/Home'
 import Products from './pages/Products'
 import Categories from './pages/Categories'
 import CartPage from './pages/CartPage'
+import Orders from './pages/Orders'
+import OrderDetail from './pages/OrderDetail'
 import Users from './pages/Users'
 
 export default function App() {
@@ -80,6 +82,14 @@ export default function App() {
             <Route
               path="/cart"
               element={can(role, 'useCart') ? <CartPage /> : <Forbidden />}
+            />
+            <Route
+              path="/orders"
+              element={can(role, 'viewOrders') ? <Orders /> : <Forbidden />}
+            />
+            <Route
+              path="/orders/:id"
+              element={can(role, 'viewOrders') ? <OrderDetail /> : <Forbidden />}
             />
             <Route
               path="/users"

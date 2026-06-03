@@ -16,6 +16,12 @@ export default function Navbar() {
     { to: '/', label: 'Bosh sahifa', icon: '🏠', show: true },
     { to: '/products', label: 'Mahsulotlar', icon: '📦', show: true },
     { to: '/categories', label: 'Kategoriyalar', icon: '🏷️', show: true },
+    {
+      to: '/orders',
+      label: can(role, 'manageOrders') ? 'Buyurtmalar' : 'Buyurtmalarim',
+      icon: '🧾',
+      show: can(role, 'viewOrders'),
+    },
     { to: '/users', label: 'Foydalanuvchilar', icon: '👥', show: can(role, 'manageUsers') },
     { to: '/cart', label: 'Savatcha', icon: '🛒', show: can(role, 'useCart') },
   ].filter((l) => l.show)

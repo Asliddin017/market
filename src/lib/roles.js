@@ -42,6 +42,9 @@ const PERMISSIONS = {
     deleteCategories: true,
     manageUsers: true,
     useCart: false,
+    viewOrders: true, // sees ALL orders
+    manageOrders: true, // change status, mark a line "yo'q"
+    deleteOrders: true,
   },
   [ROLES.SELLER]: {
     manageProducts: true,
@@ -50,6 +53,9 @@ const PERMISSIONS = {
     deleteCategories: false,
     manageUsers: false,
     useCart: false,
+    viewOrders: true, // sees ALL orders
+    manageOrders: true, // change status, mark a line "yo'q"
+    deleteOrders: false,
   },
   [ROLES.CLIENT]: {
     manageProducts: false,
@@ -58,6 +64,9 @@ const PERMISSIONS = {
     deleteCategories: false,
     manageUsers: false,
     useCart: true,
+    viewOrders: true, // sees only OWN orders (enforced by RLS)
+    manageOrders: false,
+    deleteOrders: false,
   },
 }
 

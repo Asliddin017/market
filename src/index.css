@@ -33,6 +33,32 @@
     }
   }
 
+  /*
+   * Print: isolate the receipt (chek). Everything is hidden via visibility
+   * (keeps layout intact) except the .receipt-area, which is lifted to the top
+   * of the page and forced onto a clean white background so window.print()
+   * yields a tidy paper receipt — no navbar, buttons, or dark theme.
+   */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    .receipt-area,
+    .receipt-area * {
+      visibility: visible;
+      color: #000 !important;
+      background: transparent !important;
+      border-color: #999 !important;
+    }
+    .receipt-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 0 !important;
+    }
+  }
+
   /* Smooth, themed scrollbar */
   ::-webkit-scrollbar {
     width: 10px;

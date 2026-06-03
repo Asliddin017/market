@@ -44,6 +44,21 @@ ma'lumotlar bazasini** ko'radi.
   muhimlik bo'yicha saralash).
 - **Savatcha** — Supabase `cart_items` da har bir mijoz uchun saqlanadi; admin
   mijozning savatchasini ko'ra oladi (RLS bilan himoyalangan).
+- **🧾 Buyurtma (order) tizimi** — *yetkazib berish yo'q, faqat olib ketish*:
+  - Mijoz savatchadan **"Buyurtma berish"** bosadi → buyurtma yaratiladi (holat:
+    **"Buyurtma berildi"**) — narx va mahsulotlar **o'sha ondagi holatda** saqlanadi
+    (snapshot).
+  - Sotuvchi/admin **"Buyurtmalar"** bo'limida barcha buyurtmalarni ko'radi, ichini
+    ochadi, tayyorlaydi va holatni **"Buyurtmangiz tayyor"** ga o'tkazadi
+    (ixtiyoriy oraliq: *Tayyorlanmoqda*). Har bir holat **rangli belgi** + vaqt bilan.
+  - **Mahsulot yo'q bo'lsa** sotuvchi o'sha qatorni **"yo'q"** deb belgilaydi → u
+    umumiy summadan chiqariladi va **realtime** orqali ikkala tomonda ham qayta
+    hisoblanadi; mijoz aniq ogohlantirish ko'radi.
+  - **Maxsus narx** — mijoz savatchada har bir mahsulotga o'z narxini kiritishi mumkin
+    (asl narx ham, maxsus narx ham saqlanadi; jamida maxsus narx ishlatiladi).
+  - **Chek (receipt)** — buyurtma tayyor bo'lganda mijoz chop etsa bo'ladigan chekni
+    ko'radi (do'kon nomi **ASL ZIYO**, sana, mahsulotlar, yo'q mahsulotlar alohida,
+    yakuniy summa).
 
 ---
 
@@ -108,7 +123,23 @@ supabase db execute --file supabase/schema.sql
 #   cp supabase/schema.sql "supabase/migrations/$(date +%Y%m%d%H%M%S)_init.sql"
 #   supabase db push
 ```
-Har ikki yo'l bir xil natijani beradi. Keyin **5-bosqich**ga o'ting.
+Har ikki yo'l bir xil natijani beradi. Keyin **4.1-bosqich**ga o'ting.
+
+### 4.1) Buyurtma (order) tizimini yarating
+`supabase/orders.sql` ni **`schema.sql` dan keyin** ishga tushiring — u `orders` +
+`order_items` jadvallari, RLS siyosatlari, triggerlar (jami summani avtomatik qayta
+hisoblash, `ready_at` belgisi) va realtime publication'ni qo'shadi. Shuningdek
+`cart_items` ga `custom_price` (maxsus narx) ustunini qo'shadi. To'liq idempotent —
+qayta ishga tushirsa ham xatosiz.
+
+1. Supabase Dashboard → **SQL** → **New query**.
+2. `supabase/orders.sql` ning butun mazmunini nusxalab joylashtiring.
+3. **Run** bosing (`Success. No rows returned`).
+
+```bash
+# Yoki CLI bilan:
+supabase db execute --file supabase/orders.sql
+```
 
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
@@ -190,6 +221,11 @@ npm run preview   # build natijasini ko'rish
   - **Faqat admin** — **o'chirish** va rollarni boshqarish.
   - Mijoz **faqat o'z** savatchasini o'qiydi/yozadi; admin har qanday savatchani o'qiy
     oladi.
+- Buyurtma RLS siyosatlari (`supabase/orders.sql`):
+  - Mijoz **faqat o'z** buyurtmalarini yaratadi va ko'radi; **holatni o'zgartira olmaydi**.
+  - **Admin + sotuvchi** — **barcha** buyurtmalarni ko'radi, holatni o'zgartiradi va
+    qatorni "yo'q" deb belgilaydi.
+  - **Faqat admin** — buyurtmani **o'chiradi**.
 - `.gitignore` `.env*` (lekin `.env.example` emas) fayllarini chiqarib tashlaydi.
 
 ---
@@ -211,7 +247,8 @@ npm run preview   # build natijasini ko'rish
 
 ```
 supabase/
-└── schema.sql              # Jadvallar + RLS siyosatlari + triggerlar (SQL editorda ishga tushiring)
+├── schema.sql              # Jadvallar + RLS siyosatlari + triggerlar (SQL editorda ishga tushiring)
+└── orders.sql              # Buyurtma tizimi: orders + order_items + RLS + triggerlar (schema.sql dan keyin)
 scripts/
 └── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
 .env.example                # Env o'zgaruvchilar shabloni
@@ -222,7 +259,7 @@ src/
 ├── data/products.json      # 194 mahsulot / 14 kategoriya (seed manbasi)
 ├── store/
 │   ├── authStore.js        # Supabase Auth (login / register / sessiya / rol)
-│   ├── cartStore.js        # Savatcha — Supabase cart_items
+│   ├── cartStore.js        # Savatcha — Supabase cart_items (+ maxsus narx)
 │   └── uiStore.js          # Faol fon mavzusi
 ├── lib/
 │   ├── supabase.js         # Supabase klient (env vars)
@@ -230,21 +267,24 @@ src/
 │   ├── constants.js        # UNITS, kategoriya emoji xaritasi
 │   ├── roles.js            # Rollar + ruxsatlar matritsasi (can())
 │   ├── search.js           # Aqlli fuzzy qidiruv + normalize()
+│   ├── orders.js           # Buyurtma mantiqi: holatlar, summa, maxsus narx (pure)
 │   ├── categoryThemes.js   # Yengil CSS fon mavzulari
 │   └── utils.js            # Format, slugify, toTitleCase, rasm yuklash
 ├── hooks/
-│   ├── useData.js          # Supabase reads (realtime) + mutatsiyalar + eksport/import + narx tarixi
+│   ├── useData.js          # Supabase reads (realtime) + mutatsiyalar + buyurtmalar + eksport/import
 │   └── useThemeKey.js
 ├── components/
 │   ├── ErrorBoundary.jsx   # Runtime xatoda bo'sh ekran o'rniga xabar
 │   ├── BackupControls.jsx  # Admin: eksport / import
 │   ├── PriceHistory.jsx    # "Narx tarixi" ro'yxati
+│   ├── OrderStatusBadge.jsx, Receipt.jsx  # Buyurtma holati belgisi + chop etiladigan chek
 │   ├── Layout.jsx, Navbar.jsx, CategoryBackground.jsx
 │   ├── ProductCard.jsx, ProductForm.jsx, QuickAddProducts.jsx
 │   └── ProductImage.jsx, SearchBar.jsx, ConfirmDialog.jsx
 └── pages/
     ├── Login.jsx
     ├── Home.jsx, Products.jsx, Categories.jsx, CartPage.jsx
+    ├── Orders.jsx, OrderDetail.jsx   # Buyurtmalar ro'yxati + tafsilot/chek
     └── Users.jsx
 ```
 
@@ -261,7 +301,10 @@ ikkala qatlamda ham bir xil qoidalar:
 | Mahsulot/kategoriya o'chirish            |  ✅   |    ❌    |  ❌   |
 | Foydalanuvchilarni boshqarish (`/users`) |  ✅   |    ❌    |  ❌   |
 | Eksport / Import                         |  ✅   |    ❌    |  ❌   |
-| Savatcha (xarid)                         |  ❌   |    ❌    |  ✅   |
+| Savatcha (xarid) + buyurtma berish       |  ❌   |    ❌    |  ✅   |
+| O'z buyurtmalarini ko'rish + chek        |  ❌   |    ❌    |  ✅   |
+| Barcha buyurtmalar + holat + "yo'q"      |  ✅   |    ✅    |  ❌   |
+| Buyurtmani o'chirish                     |  ✅   |    ❌    |  ❌   |
 
 ---
 
@@ -274,8 +317,14 @@ ikkala qatlamda ham bir xil qoidalar:
   (`"KATTA"`/`"katta"` → `"Katta"`, `"katta suv"` → `"Katta Suv"`; lotin va kirill).
 - **Narxlar** butun son (so'm) sifatida saqlanadi; har bir o'zgarish `price_history` ga
   yoziladi.
-- **Realtime** uchun `products` va `categories` jadvallari `supabase_realtime`
-  publication ga qo'shilgan (schema.sql da).
+- **Realtime** uchun `products` va `categories` (schema.sql), shuningdek `orders` va
+  `order_items` (orders.sql) jadvallari `supabase_realtime` publication ga qo'shilgan —
+  yangi buyurtma va holat/"yo'q" o'zgarishlari barcha qurilmalarda jonli ko'rinadi.
+- **Buyurtma jami summasi** server tomonida hisoblanadi: `order_items` o'zgarsa, DB
+  trigger `orders.total` ni faqat **mavjud** qatorlardan (maxsus narx ustun) qayta
+  hisoblaydi — mijoz va sotuvchi bir xil summani ko'radi.
+- **Chek (chop etish)**: chek tayyor bo'lganda `window.print()` faqat chekni chop etadi
+  (navbar/tugmalar yashiriladi — `@media print` `src/index.css` da).
 - Ma'lumotni noldan tiklash: `npm run reseed` ishga tushiring — u eski
   kategoriya/mahsulotlarni (va bog'liq cart_items / price_history qatorlarini)
   o'chirib, `products.json` dan toza holda qaytadan to'ldiradi.

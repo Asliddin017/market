@@ -38,15 +38,21 @@ export const useCartStore = create((set, get) => ({
   /** Re-run the load for the current client (retry button). */
   reload: () => get().loadForUser(get().clientId),
 
-  /** Upsert one product row to the given quantity in Supabase. */
+  /** Upsert one product row (quantity + optional custom price) in Supabase. */
   _persistQty: async (productId, quantity) => {
-    const { clientId } = get()
+    const { clientId, items } = get()
     if (clientId == null) return
     set({ updatedAt: new Date().toISOString() })
+    const item = items.find((i) => i.id === productId)
     const { error } = await supabase
       .from('cart_items')
       .upsert(
-        { client_id: clientId, product_id: productId, quantity },
+        {
+          client_id: clientId,
+          product_id: productId,
+          quantity,
+          custom_price: item?.customPrice ?? null,
+        },
         { onConflict: 'client_id,product_id' },
       )
     if (error) console.error('[cart] save failed:', error)
@@ -79,10 +85,30 @@ export const useCartStore = create((set, get) => ({
               unit: product.unit,
               image: product.image ?? null,
               qty,
+              customPrice: null, // client may override the price later (cart page)
             },
           ],
     }))
     get()._persistQty(product.id, newQty)
+  },
+
+  /**
+   * Set (or clear) a client's custom price override for one line. `value`:
+   *   null / '' -> clear the override (use the product's real price)
+   *   a number  -> use that price; negatives/NaN are ignored (no-op).
+   */
+  setCustomPrice: (id, value) => {
+    let custom = null
+    if (value != null && String(value).trim() !== '') {
+      const n = Number(value)
+      if (!Number.isFinite(n) || n < 0) return // invalid -> ignore
+      custom = Math.round(n)
+    }
+    set((state) => ({
+      items: state.items.map((i) => (i.id === id ? { ...i, customPrice: custom } : i)),
+    }))
+    const item = get().items.find((i) => i.id === id)
+    if (item) get()._persistQty(id, item.qty)
   },
 
   setQty: (id, qty) => {
@@ -113,12 +139,16 @@ export const useCartStore = create((set, get) => ({
   },
 }))
 
+// Effective unit price for a cart line: the custom override, else the product
+// price. Keeps the custom-price math in one place (mirrors lib/orders.js).
+const linePrice = (i) => (i.customPrice != null && i.customPrice !== '' ? Number(i.customPrice) : i.price)
+
 // Derived selectors (use with the store hook in components).
 export const selectCount = (state) => state.items.reduce((sum, i) => sum + i.qty, 0)
-export const selectTotal = (state) => state.items.reduce((sum, i) => sum + i.qty * i.price, 0)
+export const selectTotal = (state) => state.items.reduce((sum, i) => sum + i.qty * linePrice(i), 0)
 
 /** Compute count/total for an arbitrary items array (e.g. admin viewing a cart). */
 export const cartTotals = (items = []) => ({
   count: items.reduce((s, i) => s + i.qty, 0),
-  total: items.reduce((s, i) => s + i.qty * i.price, 0),
+  total: items.reduce((s, i) => s + i.qty * linePrice(i), 0),
 })

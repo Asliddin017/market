@@ -46,6 +46,34 @@ export const mapProfile = (r) => ({
   createdAt: r.created_at,
 })
 
+export const mapOrderItem = (r) => ({
+  id: r.id,
+  orderId: r.order_id,
+  productId: r.product_id ?? null,
+  name: r.name_snapshot,
+  unit: r.unit,
+  originalPrice: r.original_price,
+  customPrice: r.custom_price ?? null,
+  quantity: r.quantity,
+  isAvailable: r.is_available,
+})
+
+export const mapOrder = (r) => ({
+  id: r.id,
+  clientId: r.client_id,
+  status: r.status,
+  total: r.total,
+  note: r.note ?? null,
+  createdAt: r.created_at,
+  updatedAt: r.updated_at,
+  readyAt: r.ready_at ?? null,
+  // Nested rows are present when the query asks for them (detail / list); a bare
+  // order row leaves this undefined so callers can tell "not loaded" from "[]".
+  items: Array.isArray(r.order_items) ? r.order_items.map(mapOrderItem) : undefined,
+  // Convenience: username when the query joins profiles (staff order list).
+  clientName: r.profiles?.username ?? null,
+})
+
 // ---- shared live-table hook (fetch + realtime refetch) --------------------
 //
 // Robust against network latency / live Supabase (the cause of "intermittent
@@ -164,6 +192,165 @@ export function useUsers() {
   })
 }
 
+// ---- Orders (buyurtma) ----------------------------------------------------
+//
+// RLS scopes reads automatically: a client only ever gets their OWN orders,
+// staff (admin/seller) get ALL. So the same query works for every role.
+
+/**
+ * Live list of orders (newest first), each with its line items embedded so the
+ * list can show counts/totals. The orders.total column is kept in sync by a DB
+ * trigger, so toggling a line's availability updates the order row too — which
+ * makes this 'orders' subscription refetch and reflect the new total live.
+ */
+export function useOrders() {
+  return useLiveTable('orders', async () => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, profiles ( username ), order_items ( * )')
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data.map(mapOrder)
+  })
+}
+
+/** Fetch a single order (with items + client username). */
+export async function getOrder(orderId) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, profiles ( username ), order_items ( * )')
+    .eq('id', orderId)
+    .single()
+  if (error) throw error
+  return mapOrder(data)
+}
+
+/**
+ * Live single-order hook for the detail / receipt view. Subscribes to BOTH the
+ * order row (status changes) and its items (stock-out toggles) so the client
+ * and seller see updates in real time. Mirrors useLiveTable's robustness:
+ * retry-once on first failure, keep current data on a background refetch error.
+ */
+export function useOrder(orderId) {
+  const authReady = useAuthStore((s) => s.ready)
+
+  const [state, setState] = useState({ data: undefined, loading: true, error: null })
+  const stateRef = useRef(state)
+  stateRef.current = state
+
+  const [reloadKey, setReloadKey] = useState(0)
+  const refetch = useCallback(() => {
+    setState({ data: undefined, loading: true, error: null })
+    setReloadKey((k) => k + 1)
+  }, [])
+
+  useEffect(() => {
+    if (!authReady || !orderId) return
+    let active = true
+
+    const run = async (attempt = 0) => {
+      try {
+        const data = await getOrder(orderId)
+        if (active) setState({ data, loading: false, error: null })
+      } catch (error) {
+        if (!active) return
+        if (stateRef.current.data !== undefined) {
+          console.error('[useOrder] background refetch failed (kept current data):', error)
+          return
+        }
+        if (attempt === 0) {
+          console.error('[useOrder] load failed, retrying once:', error)
+          setTimeout(() => { if (active) run(1) }, 400)
+          return
+        }
+        console.error('[useOrder] load failed:', error)
+        setState({ data: undefined, loading: false, error })
+      }
+    }
+
+    run()
+
+    const channel = supabase
+      .channel(`order:${orderId}:${Math.random().toString(36).slice(2)}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
+        () => run(),
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'order_items', filter: `order_id=eq.${orderId}` },
+        () => run(),
+      )
+      .subscribe()
+
+    return () => {
+      active = false
+      supabase.removeChannel(channel)
+    }
+  }, [orderId, authReady, reloadKey])
+
+  return { ...state, refetch }
+}
+
+/**
+ * Create an order from cart items (snapshot of name/price/qty at this moment),
+ * then return the new order id. `items` are cart lines:
+ *   { id (productId), name, unit, price (original), customPrice|null, qty }
+ * The orders.total is filled in by the DB trigger from the inserted lines.
+ */
+export async function createOrderFromCart({ clientId, items, note = null }) {
+  if (!clientId) throw new Error('clientId kerak')
+  if (!items?.length) throw new Error('Savatcha bo‘sh')
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .insert({ client_id: clientId, status: 'buyurtma_berildi', note })
+    .select('id')
+    .single()
+  if (error) throw error
+
+  const rows = items.map((it) => ({
+    order_id: order.id,
+    product_id: it.id ?? null,
+    name_snapshot: it.name,
+    unit: it.unit || 'dona',
+    original_price: Number(it.price) || 0,
+    custom_price: it.customPrice != null && it.customPrice !== '' ? Number(it.customPrice) : null,
+    quantity: Math.max(1, Number(it.qty) || 1),
+    is_available: true,
+  }))
+  const { error: itemsErr } = await supabase.from('order_items').insert(rows)
+  if (itemsErr) {
+    // Roll back the empty order so we never leave an order with no lines.
+    await supabase.from('orders').delete().eq('id', order.id)
+    throw itemsErr
+  }
+  return order.id
+}
+
+/** Seller/admin: move an order to a new status (RLS blocks clients). */
+export async function setOrderStatus(orderId, status) {
+  const { error } = await supabase.from('orders').update({ status }).eq('id', orderId)
+  if (error) throw error
+}
+
+/** Seller/admin: mark one line available / unavailable ("yo'q"). The DB trigger
+ *  recomputes orders.total so both sides see the new total live. */
+export async function setOrderItemAvailable(itemId, isAvailable) {
+  const { error } = await supabase
+    .from('order_items')
+    .update({ is_available: isAvailable })
+    .eq('id', itemId)
+  if (error) throw error
+}
+
+/** Admin: delete an order (line items cascade). */
+export async function deleteOrder(orderId) {
+  const { error } = await supabase.from('orders').delete().eq('id', orderId)
+  if (error) throw error
+}
+
 // ---- Product mutations ----------------------------------------------------
 
 export async function saveProduct(product) {
@@ -258,7 +445,7 @@ export async function updateUserRole(id, role) {
 export async function getUserCart(userId) {
   const { data, error } = await supabase
     .from('cart_items')
-    .select('quantity, updated_at, products ( id, name, price, unit, image_url )')
+    .select('quantity, custom_price, updated_at, products ( id, name, price, unit, image_url )')
     .eq('client_id', userId)
   if (error) throw error
   const items = (data ?? [])
@@ -270,6 +457,7 @@ export async function getUserCart(userId) {
       unit: row.products.unit,
       image: row.products.image_url ?? null,
       qty: row.quantity,
+      customPrice: row.custom_price ?? null,
     }))
   return { items }
 }

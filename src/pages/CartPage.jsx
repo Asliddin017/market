@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCartStore, selectTotal, selectCount } from '../store/cartStore'
+import { useAuthStore } from '../store/authStore'
+import { createOrderFromCart } from '../hooks/useData'
 import ProductImage from '../components/ProductImage'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/AsyncStates'
@@ -12,6 +14,7 @@ export default function CartPage() {
   const increment = useCartStore((s) => s.increment)
   const decrement = useCartStore((s) => s.decrement)
   const setQty = useCartStore((s) => s.setQty)
+  const setCustomPrice = useCartStore((s) => s.setCustomPrice)
   const removeItem = useCartStore((s) => s.removeItem)
   const clear = useCartStore((s) => s.clear)
   const total = useCartStore(selectTotal)
@@ -20,14 +23,32 @@ export default function CartPage() {
   const loaded = useCartStore((s) => s.loaded)
   const error = useCartStore((s) => s.error)
   const reload = useCartStore((s) => s.reload)
+  const userId = useAuthStore((s) => s.user?.id)
+  const navigate = useNavigate()
 
   const [confirmClear, setConfirmClear] = useState(false)
   const [done, setDone] = useState(false)
+  const [placing, setPlacing] = useState(false)
+  const [placeError, setPlaceError] = useState('')
 
-  function checkout() {
-    setDone(true)
-    clear()
-    setTimeout(() => setDone(false), 3500)
+  async function checkout() {
+    if (placing || items.length === 0) return
+    setPlaceError('')
+    setPlacing(true)
+    // Snapshot the items BEFORE clearing the cart (clear empties the store).
+    const snapshot = items.map((i) => ({ ...i }))
+    try {
+      const orderId = await createOrderFromCart({ clientId: userId, items: snapshot })
+      setDone(true)
+      await clear()
+      // Brief success flash, then jump to the new order (receipt-to-be).
+      setTimeout(() => navigate(`/orders/${orderId}`), 900)
+    } catch (err) {
+      console.error('[cart] order failed:', err)
+      setPlaceError("Buyurtma berishda xatolik yuz berdi. Qayta urinib ko'ring.")
+    } finally {
+      setPlacing(false)
+    }
   }
 
   // Saved cart still loading from Supabase — show a spinner, not an empty cart.
@@ -98,8 +119,41 @@ export default function CartPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold">{item.name}</h3>
-                  <p className="text-sm text-brand-300">{formatSom(item.price)} / {item.unit}</p>
-                  <p className="text-xs text-slate-400">Jami: {formatSom(item.price * item.qty)}</p>
+                  {item.customPrice != null ? (
+                    <p className="text-sm">
+                      <span className="text-slate-500 line-through">{formatSom(item.price)}</span>{' '}
+                      <span className="text-gold-300">{formatSom(item.customPrice)}</span>
+                      <span className="text-slate-500"> / {item.unit}</span>
+                    </p>
+                  ) : (
+                    <p className="text-sm text-brand-300">{formatSom(item.price)} / {item.unit}</p>
+                  )}
+
+                  {/* Custom price override (client can set their own price). */}
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <label className="text-[11px] text-slate-400">Maxsus narx:</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder={String(item.price)}
+                      value={item.customPrice ?? ''}
+                      onChange={(e) => setCustomPrice(item.id, e.target.value)}
+                      className="w-24 rounded-lg bg-ink-900/60 px-2 py-1 text-xs"
+                    />
+                    {item.customPrice != null && (
+                      <button
+                        onClick={() => setCustomPrice(item.id, '')}
+                        className="text-[11px] text-slate-400 hover:text-rose-300"
+                        title="Asl narxga qaytarish"
+                      >
+                        ↺
+                      </button>
+                    )}
+                  </div>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    Jami: {formatSom((item.customPrice ?? item.price) * item.qty)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => decrement(item.id)} className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20">−</button>
@@ -129,8 +183,8 @@ export default function CartPage() {
                   <span>{formatSom(total)}</span>
                 </div>
                 <div className="flex justify-between text-slate-400">
-                  <span>Yetkazib berish</span>
-                  <span className="text-brand-300">Bepul</span>
+                  <span>Olib ketish</span>
+                  <span className="text-brand-300">Do'kondan</span>
                 </div>
               </div>
               <div className="border-t border-white/10 pt-3">
@@ -139,7 +193,10 @@ export default function CartPage() {
                   <span className="text-2xl font-extrabold text-brand-300">{formatSom(total)}</span>
                 </div>
               </div>
-              <button onClick={checkout} className="btn-gold w-full">✓ Buyurtma berish</button>
+              {placeError && <p className="text-xs text-rose-300">{placeError}</p>}
+              <button onClick={checkout} disabled={placing} className="btn-gold w-full">
+                {placing ? 'Yuborilmoqda…' : '✓ Buyurtma berish'}
+              </button>
             </div>
           </div>
         )}

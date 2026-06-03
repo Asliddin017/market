@@ -84,4 +84,46 @@ describe('cart selectors / totals', () => {
     expect(cartTotals()).toEqual({ count: 0, total: 0 })
     expect(cartTotals([])).toEqual({ count: 0, total: 0 })
   })
+
+  it('cartTotals uses the custom price when a line has one', () => {
+    const items = [
+      { id: 'x', qty: 2, price: 1000, customPrice: 1500 }, // 2 * 1500
+      { id: 'y', qty: 1, price: 750, customPrice: null }, // 1 * 750
+    ]
+    expect(cartTotals(items)).toEqual({ count: 3, total: 2 * 1500 + 750 })
+  })
+})
+
+describe('custom price override', () => {
+  it('setCustomPrice overrides the unit price used in selectTotal', () => {
+    const s = useCartStore.getState()
+    s.addItem(A, 2) // original 1000
+    s.setCustomPrice('a', 1800)
+    const state = useCartStore.getState()
+    expect(state.items[0].customPrice).toBe(1800)
+    expect(selectTotal(state)).toBe(2 * 1800)
+  })
+
+  it('clearing the custom price (empty string) reverts to the real price', () => {
+    const s = useCartStore.getState()
+    s.addItem(A, 1)
+    s.setCustomPrice('a', 5000)
+    s.setCustomPrice('a', '')
+    const state = useCartStore.getState()
+    expect(state.items[0].customPrice).toBeNull()
+    expect(selectTotal(state)).toBe(1000)
+  })
+
+  it('ignores invalid (negative / NaN) custom prices', () => {
+    const s = useCartStore.getState()
+    s.addItem(A, 1)
+    s.setCustomPrice('a', -50)
+    s.setCustomPrice('a', 'abc')
+    expect(useCartStore.getState().items[0].customPrice).toBeNull()
+  })
+
+  it('new items start with no custom price', () => {
+    useCartStore.getState().addItem(A, 1)
+    expect(useCartStore.getState().items[0].customPrice).toBeNull()
+  })
 })
