@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "seed": "node scripts/seed.js",
+    "reseed": "node scripts/seed.js --clean",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,16 +1,19 @@
 {
   "categories": [
-    "Tagaklar (Pampers)",
-    "Pishirilgan kolbasa",
     "Dudlangan kolbasa",
+    "Energetik — Baklashka",
+    "Energetik — Banka",
     "Go'sht mahsulotlari",
-    "Sosiska",
+    "Ichimliklar — Baklashka",
+    "Ichimliklar — Banka",
+    "Ichimliklar — Butulka",
+    "Muzlatilgan mahsulotlar",
+    "Muzqaymoq",
+    "Pishirilgan kolbasa",
     "Pishloq",
     "Sigaretlar",
-    "Muzqaymoq",
-    "Muzlatilgan mahsulotlar",
-    "Ichimliklar",
-    "Energetik ichimliklar"
+    "Sosiska",
+    "Tagaklar (Pampers)"
   ],
   "products": [
     {
@@ -422,7 +425,7 @@
       "unit": "dona"
     },
     {
-      "name": "Эксклюсив рожок",
+      "name": "Эксклюзив рожок",
       "price": 7000,
       "category": "Muzqaymoq",
       "unit": "dona"
@@ -572,7 +575,7 @@
       "unit": "dona"
     },
     {
-      "name": "Муса музqаймоq 0.5 кг",
+      "name": "Муса муzqаймоq 0.5 кг",
       "price": 25000,
       "category": "Muzqaymoq",
       "unit": "kg"
@@ -698,483 +701,483 @@
       "unit": "dona"
     },
     {
-      "name": "Гидролайф (0.25)",
+      "name": "Гидролайф (0.25) (baklashka)",
       "price": 3000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Гидролайф (0.5)",
+      "name": "Черноголовка(2.0) (baklashka)",
+      "price": 16000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (0.5) (baklashka)",
       "price": 4000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Гидролайф (1.0)",
+      "name": "Кола(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Гидролайф (1.0) (baklashka)",
       "price": 5000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Гидролайф (1.5)",
-      "price": 6000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Гидролайф (5.0)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Гидролайф (10.0)",
+      "name": "Кола(1.0) (baklashka)",
       "price": 12000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Асу (0.5)",
+      "name": "Гидролайф (1.5) (baklashka)",
       "price": 6000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Асу (1.0)",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Асу (1.5)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Дада чой (0.5)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Дада чой (1.0)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Пиала айсти (0.5)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Пиала айсти (1.0)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Сейлон чой (0.5)",
-      "price": 6000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Сейлон чой (1.5)",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Динай (0.5)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Динай (1.0)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Палпи (0.5)",
-      "price": 12000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Палпи (1.0)",
-      "price": 20000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Алое вера (0.5)",
-      "price": 12000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Алое вера (1.5)",
-      "price": 27000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Черноголовка (1.0)",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Черноголовка (1.5)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Флавис (0.5)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Черноголовка (2.0)",
+      "name": "Кола(1.5) (baklashka)",
       "price": 16000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Кола (0.5)",
+      "name": "Гидролайф (5.0) (baklashka)",
       "price": 8000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Кола (1.0)",
-      "price": 12000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Кола (1.5)",
-      "price": 16000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Кола (2.0)",
+      "name": "Кола(2.0) (baklashka)",
       "price": 22000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Палпи кола (0.5)",
+      "name": "Гидролайф (10.0) (baklashka)",
       "price": 12000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Палпи кола (1.0)",
+      "name": "Палпи кола(0.5) (baklashka)",
+      "price": 12000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Асу(0.5) (baklashka)",
+      "price": 6000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Палпи кола(1.0) (baklashka)",
       "price": 17000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок детский",
+      "name": "Асу(1.0) (baklashka)",
+      "price": 10000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок детский (baklashka)",
       "price": 4000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок Мева",
+      "name": "Асу(1.5) (baklashka)",
       "price": 13000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок Блис",
+      "name": "Сок Мева (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Дада чой(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Блис (baklashka)",
       "price": 15000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок Блис киммат",
+      "name": "Дада чой(1.0) (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Блис киммат (baklashka)",
       "price": 18000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок Добрый",
+      "name": "Пиала айсти(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Добрый (baklashka)",
       "price": 20000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок Рич",
+      "name": "Пиала айсти(1.0) (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок Рич (baklashka)",
       "price": 27000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Стинг (0.33)",
-      "price": 5000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Мохито (0.5)",
-      "price": 3000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Мохито (1.5)",
+      "name": "Сейлон чой(0.5) (baklashka)",
       "price": 6000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Морс",
+      "name": "Стинг(0.33) (baklashka)",
       "price": 5000,
-      "category": "Ichimliklar",
+      "category": "Energetik — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Морс мевали",
-      "price": 6000,
-      "category": "Ichimliklar",
+      "name": "Сейлон чой(1.5) (baklashka)",
+      "price": 10000,
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Тайм чой (0.5)",
+      "name": "Мохито(0.5) (baklashka)",
       "price": 3000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Тайм чой (1.25)",
+      "name": "Динай(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Мохито(1.5) (baklashka)",
+      "price": 6000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Динай(1.0) (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Морс (baklashka)",
       "price": 5000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Сок (3л)",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Тропик (0.5)",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Тропик (1.0)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Флавис (1.5)",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Флэш кичкина",
-      "price": 8000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Флэш ортача",
-      "price": 10000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Флэш котта",
-      "price": 13000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Горилла кичкина",
-      "price": 10000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Горилла котта",
-      "price": 13000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "18+ кичкина",
-      "price": 10000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "18+ котта",
-      "price": 13000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Стинг (пепси)",
-      "price": 10000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Рокстар кичкина",
-      "price": 8000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Рокстар котта",
-      "price": 13000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Адреналин кичкина",
+      "name": "Палпи(0.5) (baklashka)",
       "price": 12000,
-      "category": "Energetik ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Адреналин котта",
-      "price": 16000,
-      "category": "Energetik ichimliklar",
+      "name": "Морс мевали (baklashka)",
+      "price": 6000,
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Редбулл кичкина",
+      "name": "Палпи(1.0) (baklashka)",
       "price": 20000,
-      "category": "Energetik ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Редбулл ортача",
-      "price": 28000,
-      "category": "Energetik ichimliklar",
+      "name": "Тайм чой(0.5) (baklashka)",
+      "price": 3000,
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Редбулл котта",
-      "price": 35000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Мохито",
-      "price": 13000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Боржоми (банка)",
+      "name": "Алое вера(0.5) (baklashka)",
       "price": 12000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Анор Роял",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Динай (банка)",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Ава",
-      "price": 8000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Кола кичкина",
-      "price": 7000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Кола котта",
-      "price": 10000,
-      "category": "Ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Rootz",
-      "price": 12000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Sting",
-      "price": 10000,
-      "category": "Energetik ichimliklar",
-      "unit": "dona"
-    },
-    {
-      "name": "Кола (бутулка)",
+      "name": "Тайм чой(1.25) (baklashka)",
       "price": 5000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Чорток (0.33)",
+      "name": "Алое вера(1.5) (baklashka)",
+      "price": 27000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Сок(3л) (baklashka)",
       "price": 10000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Чорток (0.5)",
+      "name": "Черноголовка(1.0) (baklashka)",
+      "price": 10000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Тропик(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Черноголовка(1.5) (baklashka)",
       "price": 13000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Baklashka",
       "unit": "dona"
     },
     {
-      "name": "Чорток (0.75)",
+      "name": "Тропик(1.0) (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Флавис(0.5) (baklashka)",
+      "price": 8000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Флавис(1.5) (baklashka)",
+      "price": 13000,
+      "category": "Ichimliklar — Baklashka",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш кичкина (banka)",
+      "price": 8000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш ортача (banka)",
+      "price": 10000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Флэш котта (banka)",
+      "price": 13000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Горилла кичкина (banka)",
+      "price": 10000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Горилла котта (banka)",
+      "price": 13000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "18+  кичкина (banka)",
+      "price": 10000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "18+  котта (banka)",
+      "price": 13000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Стинг (пепси) (banka)",
+      "price": 10000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Рокстар кичкина (banka)",
+      "price": 8000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Рокстар котта (banka)",
+      "price": 13000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Адреналин кичкина (banka)",
+      "price": 12000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Адреналин котта (banka)",
       "price": 16000,
-      "category": "Ichimliklar",
+      "category": "Energetik — Banka",
       "unit": "dona"
     },
     {
-      "name": "Боржоми (бутулка)",
-      "price": 18000,
-      "category": "Ichimliklar",
+      "name": "Редбулл кичкина (banka)",
+      "price": 20000,
+      "category": "Energetik — Banka",
       "unit": "dona"
     },
     {
-      "name": "Тян-Шан (1.0)",
-      "price": 10000,
-      "category": "Ichimliklar",
+      "name": "Редбулл ортача (banka)",
+      "price": 28000,
+      "category": "Energetik — Banka",
       "unit": "dona"
     },
     {
-      "name": "Тян-Шан (1.5)",
+      "name": "Редбулл котта (banka)",
+      "price": 35000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Мохито (banka)",
       "price": 13000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Banka",
       "unit": "dona"
     },
     {
-      "name": "Набеглави",
+      "name": "Боржоми (banka)",
+      "price": 12000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Анор Роял (banka)",
+      "price": 8000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Динай (banka)",
+      "price": 10000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Ава (banka)",
+      "price": 8000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола кичкина (banka)",
+      "price": 7000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола котта (banka)",
+      "price": 10000,
+      "category": "Ichimliklar — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Rootz (banka)",
+      "price": 12000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Sting (banka)",
+      "price": 10000,
+      "category": "Energetik — Banka",
+      "unit": "dona"
+    },
+    {
+      "name": "Кола (butulka)",
+      "price": 5000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток(0.33) (butulka)",
+      "price": 10000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток(0.5) (butulka)",
+      "price": 13000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Чорток(0.75) (butulka)",
+      "price": 16000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Боржоми (butulka)",
+      "price": 18000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Тян-Шан(1.0) (butulka)",
+      "price": 10000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Тян-Шан(1.5) (butulka)",
+      "price": 13000,
+      "category": "Ichimliklar — Butulka",
+      "unit": "dona"
+    },
+    {
+      "name": "Набеглави (butulka)",
       "price": 15000,
-      "category": "Ichimliklar",
+      "category": "Ichimliklar — Butulka",
       "unit": "dona"
     }
   ]

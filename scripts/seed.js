@@ -1,11 +1,21 @@
 // ===========================================================================
-// One-time seed: import src/data/products.json (11 categories, 194 products)
-// into Supabase. Idempotent — relies on the unique indexes from schema.sql
-// (categories.name and products(category_id, name)) so re-running won't add
-// duplicates; it upserts instead.
+// Seed: import src/data/products.json (categories + products) into Supabase.
 //
-// Run schema.sql FIRST, then:
-//   node scripts/seed.js
+// Two modes:
+//   node scripts/seed.js            (default)  — UPSERT. Idempotent via the
+//       unique indexes from schema.sql (categories.name and
+//       products(category_id, name)); re-running won't add duplicates. It only
+//       adds/updates rows — it does NOT remove rows that are no longer in the
+//       JSON (e.g. old categories renamed/split stay behind).
+//
+//   node scripts/seed.js --clean   (npm run reseed) — CLEAN RE-SEED. Wipes the
+//       existing categories + products (and the cart_items / price_history rows
+//       that depend on them, FK-safe order) and inserts exactly what is in
+//       products.json. Use this when categories were renamed/split so no stale
+//       rows are left behind. Result is exactly the JSON contents — no
+//       duplicates, no leftovers. Safe to run repeatedly.
+//
+// Run schema.sql FIRST.
 //
 // Requires (read from .env.local or the shell environment):
 //   VITE_SUPABASE_URL
@@ -51,12 +61,41 @@ if (!url || !serviceKey) {
 
 const supabase = createClient(url, serviceKey, { auth: { persistSession: false } })
 
+const CLEAN = process.argv.slice(2).some((a) => a === '--clean' || a === '-c')
+
+// Delete every row of a table. Supabase requires a filter on delete(), so we
+// match all rows via a timestamp column that always exists & is always set.
+async function deleteAll(table, tsColumn) {
+  const { error } = await supabase
+    .from(table)
+    .delete()
+    .gte(tsColumn, '1970-01-01T00:00:00Z')
+  if (error) throw error
+}
+
+// FK-safe wipe of the data we're about to re-seed. cart_items / price_history
+// reference products (ON DELETE CASCADE in schema.sql), but we delete them
+// explicitly first so this also works if the FKs were created differently, and
+// so any cart rows pointing at products we're about to drop are cleared (the
+// app would otherwise try to render carts that reference missing products).
+async function clean() {
+  console.log('Tozalash (clean re-seed): cart_items, price_history, products, categories...')
+  await deleteAll('cart_items', 'updated_at') // clears all carts (rows would be orphaned anyway)
+  await deleteAll('price_history', 'changed_at') // append-only log of soon-to-be-deleted products
+  await deleteAll('products', 'created_at')
+  await deleteAll('categories', 'created_at')
+}
+
 async function main() {
   const data = JSON.parse(readFileSync(resolve(root, 'src/data/products.json'), 'utf8'))
   const categoryNames = data.categories
   const products = data.products
 
-  console.log(`Seeding ${categoryNames.length} kategoriya, ${products.length} mahsulot...`)
+  console.log(
+    `${CLEAN ? 'CLEAN re-seed' : 'Upsert'}: ${categoryNames.length} kategoriya, ${products.length} mahsulot...`,
+  )
+
+  if (CLEAN) await clean()
 
   // 1) Upsert categories (unique on name) and build name -> id map.
   const categoryRows = categoryNames.map((name) => ({

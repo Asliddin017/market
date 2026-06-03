@@ -119,10 +119,33 @@ yangi hisoblar tasdiqlanmagan holda qoladi.
 ```bash
 npm run seed
 ```
-Skript `src/data/products.json` dan 11 kategoriya + 194 mahsulotni Supabase ga
+Skript `src/data/products.json` dan 14 kategoriya + 194 mahsulotni Supabase ga
 **upsert** qiladi (qayta ishga tushirsa — dublikat bo'lmaydi). U `.env.local` dagi
 `SUPABASE_SERVICE_ROLE_KEY` ni o'qiydi (RLS ni chetlab o'tadi — shuning uchun faqat
 lokalda/CI da ishlating, frontendga chiqarmang).
+
+#### Toza qayta seed (clean re-seed)
+```bash
+npm run reseed
+```
+`npm run seed` faqat **qo'shadi/yangilaydi** — JSON dan olib tashlangan eski
+qatorlarni (masalan, qayta nomlangan yoki bo'lingan kategoriyalarni) **o'chirmaydi**.
+Agar kategoriyalar o'zgargan bo'lsa (masalan ichimliklar idish turi bo'yicha
+`Ichimliklar — Banka`, `Ichimliklar — Butulka`, `Energetik — Banka` … ga bo'lingan
+bo'lsa), `npm run reseed` ishlating. U:
+
+1. mavjud `categories` + `products` ni (va ularga bog'liq `cart_items` /
+   `price_history` qatorlarini, **FK-xavfsiz tartibda**) o'chiradi — savatchada
+   o'chirilgan mahsulotga ishora qiluvchi qatorlar tozalanadi (ilova xato bermaydi),
+2. so'ng `products.json` dagi **aynan** kategoriya va mahsulotlarni qaytadan
+   kiritadi — dublikat ham, eski qoldiq ham qolmaydi.
+
+Idempotent: bir necha marta ishga tushirsa ham natija bir xil. Xuddi `seed` kabi
+`.env.local` dagi `SUPABASE_SERVICE_ROLE_KEY` ni ishlatadi (RLS ni chetlab o'tadi —
+frontendga / Vercel ga **qo'shmang**).
+
+> ⚠️ `reseed` **barcha savatchalarni ham tozalaydi** (cart_items butunlay
+> o'chiriladi), chunki barcha mahsulot ID'lari yangidan yaratiladi.
 
 ### 7) Birinchi adminni yarating
 1. Ilovani oching (`npm run dev`) va **`Asliddin017`** username bilan ro'yxatdan o'ting
@@ -190,13 +213,13 @@ npm run preview   # build natijasini ko'rish
 supabase/
 └── schema.sql              # Jadvallar + RLS siyosatlari + triggerlar (SQL editorda ishga tushiring)
 scripts/
-└── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent)
+└── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
 .env.example                # Env o'zgaruvchilar shabloni
 vercel.json                 # SPA rewrite (F5 da 404 bo'lmasligi uchun)
 src/
 ├── App.jsx                 # Sessiya bootstrap, rolga asoslangan routing
 ├── main.jsx                # React + Router + ErrorBoundary
-├── data/products.json      # 194 mahsulot / 11 kategoriya (seed manbasi)
+├── data/products.json      # 194 mahsulot / 14 kategoriya (seed manbasi)
 ├── store/
 │   ├── authStore.js        # Supabase Auth (login / register / sessiya / rol)
 │   ├── cartStore.js        # Savatcha — Supabase cart_items
@@ -253,5 +276,6 @@ ikkala qatlamda ham bir xil qoidalar:
   yoziladi.
 - **Realtime** uchun `products` va `categories` jadvallari `supabase_realtime`
   publication ga qo'shilgan (schema.sql da).
-- Ma'lumotni noldan tiklash: Supabase'da jadval qatorlarini tozalang va `npm run seed`
-  ni qayta ishga tushiring.
+- Ma'lumotni noldan tiklash: `npm run reseed` ishga tushiring — u eski
+  kategoriya/mahsulotlarni (va bog'liq cart_items / price_history qatorlarini)
+  o'chirib, `products.json` dan toza holda qaytadan to'ldiradi.

@@ -18,6 +18,13 @@ export const CATEGORY_ICONS = {
   Sigaretlar: '🚬',
   Muzqaymoq: '🍦',
   'Muzlatilgan mahsulotlar': '🧊',
+  // Drinks, split by package type.
   Ichimliklar: '🧃',
+  'Ichimliklar — Baklashka': '🧴',
+  'Ichimliklar — Banka': '🥤',
+  'Ichimliklar — Butulka': '🍾',
+  // Energy drinks, split by package type.
   'Energetik ichimliklar': '⚡',
+  'Energetik — Banka': '⚡',
+  'Energetik — Baklashka': '⚡',
 }

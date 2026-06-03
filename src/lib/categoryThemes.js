@@ -116,10 +116,19 @@ export const CATEGORY_THEMES = {
 export const THEME_KEYS = Object.keys(CATEGORY_THEMES)
 
 /**
- * Resolve a category (by slug) to a valid theme key. Unknown / new categories
- * safely fall back to 'default' so the app never breaks.
+ * Resolve a category (by slug) to a valid theme key.
+ *
+ *   1. exact slug match  ('ichimliklar', 'sabzavotlar', ...)
+ *   2. prefix match      — package-split drink categories share a theme:
+ *        'energetik-banka' / 'energetik-baklashka'      -> 'energetik-ichimliklar'
+ *        'ichimliklar-banka' / 'ichimliklar-butulka' …  -> 'ichimliklar'
+ *   3. fallback to 'default' so unknown / new categories never break the app.
  */
 export function resolveThemeKey(slug) {
   if (slug && CATEGORY_THEMES[slug]) return slug
+  if (slug) {
+    if (slug.startsWith('energetik')) return 'energetik-ichimliklar'
+    if (slug.startsWith('ichimliklar')) return 'ichimliklar'
+  }
   return 'default'
 }
