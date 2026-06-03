@@ -20,6 +20,10 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       price: 12000,
       unit: 'kg',
       image: null,
+      soldByPiece: false,
+      piecePrice: null,
+      pieceBundleQty: null,
+      pieceBundlePrice: null,
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-02T00:00:00Z',
     })
@@ -27,6 +31,22 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
 
   it('mapProduct passes through an image_url when present', () => {
     expect(mapProduct({ id: 'p', image_url: 'data:abc' }).image).toBe('data:abc')
+  })
+
+  it('mapProduct maps per-piece (cigarette) config', () => {
+    const m = mapProduct({
+      id: 'cig',
+      sold_by_piece: true,
+      piece_price: 2000,
+      piece_bundle_qty: 3,
+      piece_bundle_price: 5000,
+    })
+    expect(m).toMatchObject({
+      soldByPiece: true,
+      piecePrice: 2000,
+      pieceBundleQty: 3,
+      pieceBundlePrice: 5000,
+    })
   })
 
   it('mapCategory maps fields and defaults the icon emoji', () => {
@@ -58,6 +78,11 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       custom_price: 18000,
       quantity: 2,
       is_available: false,
+      sold_by_piece: true,
+      piece_price: 2000,
+      piece_bundle_qty: 3,
+      piece_bundle_price: 5000,
+      sell_mode: 'dona',
     }
     expect(mapOrderItem(row)).toEqual({
       id: 'oi1',
@@ -69,6 +94,11 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
       customPrice: 18000,
       quantity: 2,
       isAvailable: false,
+      soldByPiece: true,
+      piecePrice: 2000,
+      pieceBundleQty: 3,
+      pieceBundlePrice: 5000,
+      sellMode: 'dona',
     })
   })
 

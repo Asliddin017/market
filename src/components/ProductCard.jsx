@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import ProductImage from './ProductImage'
 import { formatSom, formatDateTime, toTime } from '../lib/utils'
+import { SELL_MODE, canSellByPiece, pieceModeLabel } from '../lib/pricing'
 
 // ---------------------------------------------------------------------------
 // Glassmorphic product card with a real 3D tilt that follows the cursor.
@@ -22,6 +23,9 @@ export default function ProductCard({
 }) {
   const ref = useRef(null)
   const [hovered, setHovered] = useState(false)
+  const byPiece = canSellByPiece(product)
+  // Chosen sell mode for piece-products (cigarettes): pack (pachka) or piece (dona).
+  const [mode, setMode] = useState(SELL_MODE.PACK)
 
   // Raw pointer position (0..1 within the card).
   const px = useMotionValue(0.5)
@@ -87,18 +91,45 @@ export default function ProductCard({
           <div className="flex items-end justify-between">
             <div>
               <p className="text-lg font-bold text-brand-300">{formatSom(product.price)}</p>
-              <p className="text-xs text-slate-400">1 {product.unit} uchun</p>
+              <p className="text-xs text-slate-400">
+                {byPiece ? '1 pachka uchun' : `1 ${product.unit} uchun`}
+              </p>
             </div>
 
             {canAddToCart && (
               <button
-                onClick={() => onAddToCart?.(product)}
+                onClick={() => onAddToCart?.(product, byPiece ? { sellMode: mode } : undefined)}
                 className="btn-primary px-3 py-2 text-xs"
               >
                 🛒 Savatga
               </button>
             )}
           </div>
+
+          {/* Cigarettes: choose Pachka (pack) or Dona (per-piece) before adding */}
+          {byPiece && canAddToCart && (
+            <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setMode(SELL_MODE.PACK)}
+                  className={`chip justify-center ${mode === SELL_MODE.PACK ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
+                >
+                  📦 Pachka
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode(SELL_MODE.PIECE)}
+                  className={`chip justify-center ${mode === SELL_MODE.PIECE ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
+                >
+                  🚬 Dona
+                </button>
+              </div>
+              <p className="text-[10px] leading-tight text-slate-400">
+                {mode === SELL_MODE.PIECE ? pieceModeLabel(product) : `Pachka: ${formatSom(product.price)}`}
+              </p>
+            </div>
+          )}
 
           {/* Timestamp — shows "updated" when the product was edited later. */}
           <p className="text-[10px] leading-tight text-slate-500">

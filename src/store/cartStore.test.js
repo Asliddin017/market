@@ -85,10 +85,10 @@ describe('cart selectors / totals', () => {
     expect(cartTotals([])).toEqual({ count: 0, total: 0 })
   })
 
-  it('cartTotals uses the custom price when a line has one', () => {
+  it('cartTotals uses the custom price for a kg line (ignored for non-kg)', () => {
     const items = [
-      { id: 'x', qty: 2, price: 1000, customPrice: 1500 }, // 2 * 1500
-      { id: 'y', qty: 1, price: 750, customPrice: null }, // 1 * 750
+      { id: 'x', qty: 2, price: 1000, unit: 'kg', customPrice: 1500 }, // 2 * 1500 (kg)
+      { id: 'y', qty: 1, price: 750, unit: 'dona', customPrice: 999 }, // 1 * 750 (custom ignored)
     ]
     expect(cartTotals(items)).toEqual({ count: 3, total: 2 * 1500 + 750 })
   })
@@ -125,5 +125,66 @@ describe('custom price override', () => {
   it('new items start with no custom price', () => {
     useCartStore.getState().addItem(A, 1)
     expect(useCartStore.getState().items[0].customPrice).toBeNull()
+  })
+
+  it('is a no-op for non-kg (dona/litr) items — price stays fixed (Change A)', () => {
+    const s = useCartStore.getState()
+    s.addItem(B, 1) // litr
+    s.setCustomPrice('b', 999)
+    const state = useCartStore.getState()
+    expect(state.items[0].customPrice).toBeNull()
+    expect(selectTotal(state)).toBe(1500) // unchanged real price
+  })
+})
+
+// ---- Change B: cigarettes by pack (pachka) or piece (dona) ----------------
+const CIG_BUNDLE = {
+  id: 'c',
+  name: 'Винстон',
+  price: 22000,
+  unit: 'dona',
+  image: null,
+  soldByPiece: true,
+  piecePrice: 2000,
+  pieceBundleQty: 3,
+  pieceBundlePrice: 5000,
+}
+
+describe('cigarette piece pricing in the cart', () => {
+  it('defaults to PACK mode (pachka) using the pack price', () => {
+    const s = useCartStore.getState()
+    s.addItem(CIG_BUNDLE, 2)
+    const state = useCartStore.getState()
+    expect(state.items[0].sellMode).toBe('pachka')
+    expect(selectTotal(state)).toBe(44000) // 2 * 22000
+  })
+
+  it('PIECE (dona) mode applies the 3 = 5000 bundle math', () => {
+    const s = useCartStore.getState()
+    s.addItem(CIG_BUNDLE, 6)
+    s.setSellMode('c', 'dona')
+    expect(selectTotal(useCartStore.getState())).toBe(10000) // 2 bundles
+  })
+
+  it('can be added straight into dona mode via opts', () => {
+    const s = useCartStore.getState()
+    s.addItem(CIG_BUNDLE, 4, { sellMode: 'dona' })
+    const state = useCartStore.getState()
+    expect(state.items[0].sellMode).toBe('dona')
+    expect(selectTotal(state)).toBe(7000) // 5000 + 2000
+  })
+
+  it('setSellMode ignores unknown modes', () => {
+    const s = useCartStore.getState()
+    s.addItem(CIG_BUNDLE, 1)
+    s.setSellMode('c', 'bogus')
+    expect(useCartStore.getState().items[0].sellMode).toBe('pachka')
+  })
+
+  it('cartTotals also honors piece pricing', () => {
+    const items = [
+      { id: 'c', qty: 3, price: 22000, unit: 'dona', soldByPiece: true, sellMode: 'dona', piecePrice: 2000, pieceBundleQty: 3, pieceBundlePrice: 5000 },
+    ]
+    expect(cartTotals(items)).toEqual({ count: 3, total: 5000 })
   })
 })

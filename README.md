@@ -54,11 +54,24 @@ ma'lumotlar bazasini** ko'radi.
   - **Mahsulot yo'q bo'lsa** sotuvchi o'sha qatorni **"yo'q"** deb belgilaydi → u
     umumiy summadan chiqariladi va **realtime** orqali ikkala tomonda ham qayta
     hisoblanadi; mijoz aniq ogohlantirish ko'radi.
-  - **Maxsus narx** — mijoz savatchada har bir mahsulotga o'z narxini kiritishi mumkin
-    (asl narx ham, maxsus narx ham saqlanadi; jamida maxsus narx ishlatiladi).
+  - **Narx vs son tahrirlash (o'lcham birligiga qarab)**:
+    - **kg** mahsulotlar (tarozida tortiladigan — kazi, kolbasa): **narx** ham, **son**
+      ham o'zgartiriladi (mijoz savatchada, sotuvchi buyurtmada). Masalan 35000 → 40000.
+    - **dona** mahsulotlar (butun qadoq — muzqaymoq, butulka): **narx qat'iy**, hech kim
+      o'zgartira olmaydi (42000 lik qadoqni 38000 ga sotib bo'lmaydi); faqat **son**
+      o'zgartiriladi.
+    - **Son** har doim (kg ham, dona ham) o'zgartiriladi — masalan sotuvchi "Flash ×3"
+      ni ×1 ga tushiradi, jami ikkala tomonda jonli qayta hisoblanadi.
+  - **🚬 Sigaretlar — pachka yoki dona**: sigaretni **pachka** (joriy narx) yoki **dona**
+    sotish mumkin. Dona narxi: dastlabki 3 tasi (Палмалл простой, Милано, Кемал) —
+    **1000 so'm/dona**; qolganlari — **2000 so'm/dona**, lekin **har 3 ta = 5000 so'm**.
+    Xaridor pachka/dona ni mahsulot kartasi yoki savatchada tanlaydi.
   - **Chek (receipt)** — buyurtma tayyor bo'lganda mijoz chop etsa bo'ladigan chekni
     ko'radi (do'kon nomi **ASL ZIYO**, sana, mahsulotlar, yo'q mahsulotlar alohida,
     yakuniy summa).
+  - Barcha narx hisob-kitobi **bitta manbadan** (`src/lib/pricing.js`) — savatcha, buyurtma,
+    chek va server triggeri bir xil qoidani ishlatadi, shuning uchun mijoz va sotuvchi
+    summasi **doim mos keladi**.
 
 ---
 
@@ -139,6 +152,27 @@ qayta ishga tushirsa ham xatosiz.
 ```bash
 # Yoki CLI bilan:
 supabase db execute --file supabase/orders.sql
+```
+
+### 4.2) Narx qoidalari + sigaret dona narxini qo'shing
+`supabase/piece_pricing.sql` ni **`orders.sql` dan keyin** ishga tushiring. U:
+- `products` va `order_items` ga dona-narx ustunlarini qo'shadi (`sold_by_piece`,
+  `piece_price`, `piece_bundle_qty`, `piece_bundle_price`) + `sell_mode` (pachka/dona);
+- **'Sigaretlar'** kategoriyasini sozlaydi (3 ta maxsus = 1000; qolganlari = 2000, 3 ta
+  = 5000) — **194 mahsulotni qayta seed qilish shart emas**, faqat sigaretlar yangilanadi;
+- jami summa triggerini yangilaydi: **dona** mahsulotlarda maxsus narx e'tiborga
+  olinmaydi (faqat **kg** da), sigaret dona narxi esa bundle bilan hisoblanadi.
+
+To'liq idempotent. Maxsus uchlik nomi (Палмалл простой, Милано, Кемал) **katta-kichik
+harfdan qat'i nazar** moslashtiriladi.
+
+1. Supabase Dashboard → **SQL** → **New query**.
+2. `supabase/piece_pricing.sql` ni nusxalab joylashtiring.
+3. **Run** bosing.
+
+```bash
+# Yoki CLI bilan:
+supabase db execute --file supabase/piece_pricing.sql
 ```
 
 ### 5) Email tasdiqlashni o'chiring
@@ -248,7 +282,8 @@ npm run preview   # build natijasini ko'rish
 ```
 supabase/
 ├── schema.sql              # Jadvallar + RLS siyosatlari + triggerlar (SQL editorda ishga tushiring)
-└── orders.sql              # Buyurtma tizimi: orders + order_items + RLS + triggerlar (schema.sql dan keyin)
+├── orders.sql              # Buyurtma tizimi: orders + order_items + RLS + triggerlar (schema.sql dan keyin)
+└── piece_pricing.sql       # Narx qoidalari (kg/dona) + sigaret dona narxi (orders.sql dan keyin)
 scripts/
 └── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
 .env.example                # Env o'zgaruvchilar shabloni
@@ -267,7 +302,8 @@ src/
 │   ├── constants.js        # UNITS, kategoriya emoji xaritasi
 │   ├── roles.js            # Rollar + ruxsatlar matritsasi (can())
 │   ├── search.js           # Aqlli fuzzy qidiruv + normalize()
-│   ├── orders.js           # Buyurtma mantiqi: holatlar, summa, maxsus narx (pure)
+│   ├── pricing.js          # YAGONA narx manbai: kg/dona narx, sigaret dona/bundle (pure)
+│   ├── orders.js           # Buyurtma mantiqi: holatlar (+ pricing'ga delegatsiya)
 │   ├── categoryThemes.js   # Yengil CSS fon mavzulari
 │   └── utils.js            # Format, slugify, toTitleCase, rasm yuklash
 ├── hooks/
@@ -321,8 +357,11 @@ ikkala qatlamda ham bir xil qoidalar:
   `order_items` (orders.sql) jadvallari `supabase_realtime` publication ga qo'shilgan —
   yangi buyurtma va holat/"yo'q" o'zgarishlari barcha qurilmalarda jonli ko'rinadi.
 - **Buyurtma jami summasi** server tomonida hisoblanadi: `order_items` o'zgarsa, DB
-  trigger `orders.total` ni faqat **mavjud** qatorlardan (maxsus narx ustun) qayta
-  hisoblaydi — mijoz va sotuvchi bir xil summani ko'radi.
+  trigger (`supabase/piece_pricing.sql`) `orders.total` ni faqat **mavjud** qatorlardan
+  qayta hisoblaydi. Trigger `src/lib/pricing.js` bilan **bir xil qoidani** ishlatadi:
+  maxsus narx faqat **kg** da, **dona** narxi qat'iy, sigaret dona narxi bundle bilan.
+  Shuning uchun mijoz va sotuvchi summasi doim mos keladi. ⚠️ `pricing.js` qoidasini
+  o'zgartirsangiz, SQL triggerni ham yangilang.
 - **Chek (chop etish)**: chek tayyor bo'lganda `window.print()` faqat chekni chop etadi
   (navbar/tugmalar yashiriladi — `@media print` `src/index.css` da).
 - Ma'lumotni noldan tiklash: `npm run reseed` ishga tushiring — u eski

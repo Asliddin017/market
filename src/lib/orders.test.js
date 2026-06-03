@@ -11,10 +11,13 @@ import {
   normalizeCustomPrice,
 } from './orders'
 
+// kg by default so the custom-price override applies (Change A). Money rules
+// themselves are covered in depth by pricing.test.js; these check that orders.js
+// correctly delegates to pricing.
 const line = (over = {}) => ({
   id: 'i1',
-  name: 'Cola',
-  unit: 'dona',
+  name: 'Kazy',
+  unit: 'kg',
   originalPrice: 13000,
   customPrice: null,
   quantity: 2,
@@ -22,18 +25,23 @@ const line = (over = {}) => ({
   ...over,
 })
 
-describe('effectivePrice / lineTotal', () => {
+describe('effectivePrice / lineTotal (delegates to pricing)', () => {
   it('uses the original price when there is no custom price', () => {
     expect(effectivePrice(line())).toBe(13000)
     expect(lineTotal(line())).toBe(26000)
   })
 
-  it('uses the custom price when set (client override)', () => {
+  it('uses the custom price for a kg item (client/seller override)', () => {
     expect(effectivePrice(line({ customPrice: 18000 }))).toBe(18000)
     expect(lineTotal(line({ customPrice: 18000 }))).toBe(36000)
   })
 
-  it('treats a 0 custom price as a real override, not "unset"', () => {
+  it('IGNORES custom price on a dona item (fixed price — Change A)', () => {
+    expect(effectivePrice(line({ unit: 'dona', customPrice: 18000 }))).toBe(13000)
+    expect(lineTotal(line({ unit: 'dona', customPrice: 18000 }))).toBe(26000)
+  })
+
+  it('treats a 0 custom price on kg as a real override, not "unset"', () => {
     expect(effectivePrice(line({ customPrice: 0 }))).toBe(0)
   })
 })

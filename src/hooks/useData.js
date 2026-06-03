@@ -26,6 +26,11 @@ export const mapProduct = (r) => ({
   price: r.price,
   unit: r.unit,
   image: r.image_url ?? null,
+  // Per-piece (cigarette) config — defaults are safe for normal products.
+  soldByPiece: r.sold_by_piece ?? false,
+  piecePrice: r.piece_price ?? null,
+  pieceBundleQty: r.piece_bundle_qty ?? null,
+  pieceBundlePrice: r.piece_bundle_price ?? null,
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 })
@@ -56,6 +61,12 @@ export const mapOrderItem = (r) => ({
   customPrice: r.custom_price ?? null,
   quantity: r.quantity,
   isAvailable: r.is_available,
+  // Per-piece (cigarette) snapshot.
+  soldByPiece: r.sold_by_piece ?? false,
+  piecePrice: r.piece_price ?? null,
+  pieceBundleQty: r.piece_bundle_qty ?? null,
+  pieceBundlePrice: r.piece_bundle_price ?? null,
+  sellMode: r.sell_mode ?? null,
 })
 
 export const mapOrder = (r) => ({
@@ -316,9 +327,19 @@ export async function createOrderFromCart({ clientId, items, note = null }) {
     name_snapshot: it.name,
     unit: it.unit || 'dona',
     original_price: Number(it.price) || 0,
-    custom_price: it.customPrice != null && it.customPrice !== '' ? Number(it.customPrice) : null,
+    // Custom price kept ONLY for kg items (Change A); ignored otherwise.
+    custom_price:
+      it.unit === 'kg' && it.customPrice != null && it.customPrice !== ''
+        ? Number(it.customPrice)
+        : null,
     quantity: Math.max(1, Number(it.qty) || 1),
     is_available: true,
+    // Per-piece (cigarette) snapshot (Change B).
+    sold_by_piece: Boolean(it.soldByPiece),
+    piece_price: it.piecePrice ?? null,
+    piece_bundle_qty: it.pieceBundleQty ?? null,
+    piece_bundle_price: it.pieceBundlePrice ?? null,
+    sell_mode: it.sellMode ?? null,
   }))
   const { error: itemsErr } = await supabase.from('order_items').insert(rows)
   if (itemsErr) {
@@ -341,6 +362,25 @@ export async function setOrderItemAvailable(itemId, isAvailable) {
   const { error } = await supabase
     .from('order_items')
     .update({ is_available: isAvailable })
+    .eq('id', itemId)
+  if (error) throw error
+}
+
+/** Seller/admin: change a line's quantity (e.g. only 1 left). Recomputes total. */
+export async function setOrderItemQuantity(itemId, quantity) {
+  const q = Math.max(1, Math.floor(Number(quantity) || 1))
+  const { error } = await supabase.from('order_items').update({ quantity: q }).eq('id', itemId)
+  if (error) throw error
+}
+
+/** Seller/admin: set/clear a line's custom price (UI gates this to kg items).
+ *  null/'' clears it; the trigger ignores custom_price on non-kg lines anyway. */
+export async function setOrderItemCustomPrice(itemId, customPrice) {
+  const value =
+    customPrice == null || customPrice === '' ? null : Math.max(0, Math.round(Number(customPrice)))
+  const { error } = await supabase
+    .from('order_items')
+    .update({ custom_price: value })
     .eq('id', itemId)
   if (error) throw error
 }
@@ -445,7 +485,10 @@ export async function updateUserRole(id, role) {
 export async function getUserCart(userId) {
   const { data, error } = await supabase
     .from('cart_items')
-    .select('quantity, custom_price, updated_at, products ( id, name, price, unit, image_url )')
+    .select(
+      'quantity, custom_price, sell_mode, updated_at, ' +
+        'products ( id, name, price, unit, image_url, sold_by_piece, piece_price, piece_bundle_qty, piece_bundle_price )',
+    )
     .eq('client_id', userId)
   if (error) throw error
   const items = (data ?? [])
@@ -458,6 +501,12 @@ export async function getUserCart(userId) {
       image: row.products.image_url ?? null,
       qty: row.quantity,
       customPrice: row.custom_price ?? null,
+      // Per-piece (cigarette) config + chosen mode.
+      soldByPiece: row.products.sold_by_piece ?? false,
+      piecePrice: row.products.piece_price ?? null,
+      pieceBundleQty: row.products.piece_bundle_qty ?? null,
+      pieceBundlePrice: row.products.piece_bundle_price ?? null,
+      sellMode: row.sell_mode ?? (row.products.sold_by_piece ? 'pachka' : null),
     }))
   return { items }
 }

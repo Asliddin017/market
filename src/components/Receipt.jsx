@@ -1,5 +1,6 @@
 import { formatSom, formatDateTime } from '../lib/utils'
 import { effectivePrice, lineTotal, orderTotal, splitAvailability } from '../lib/orders'
+import { canSellByPiece, isPieceMode, displayUnit } from '../lib/pricing'
 
 // ---------------------------------------------------------------------------
 // Printable receipt (chek). Shown to the client when the order is ready. The
@@ -44,13 +45,18 @@ export default function Receipt({ order }) {
               <tr key={it.id} className="border-t border-white/5 align-top">
                 <td className="py-2 pr-2">
                   {it.name}
-                  {it.customPrice != null && (
+                  {canSellByPiece(it) && (
+                    <span className="ml-1 text-[10px] text-slate-400">
+                      ({isPieceMode(it) ? 'dona' : 'pachka'})
+                    </span>
+                  )}
+                  {it.unit === 'kg' && it.customPrice != null && (
                     <span className="ml-1 text-[10px] text-gold-300">(maxsus narx)</span>
                   )}
                 </td>
                 <td className="py-2 text-right tabular-nums">{formatSom(effectivePrice(it))}</td>
                 <td className="py-2 text-center tabular-nums">
-                  {it.quantity} {it.unit}
+                  {it.quantity} {displayUnit(it)}
                 </td>
                 <td className="py-2 text-right tabular-nums">{formatSom(lineTotal(it))}</td>
               </tr>
@@ -67,7 +73,7 @@ export default function Receipt({ order }) {
             {unavailable.map((it) => (
               <li key={it.id} className="flex justify-between">
                 <span className="line-through">{it.name}</span>
-                <span>{it.quantity} {it.unit}</span>
+                <span>{it.quantity} {displayUnit(it)}</span>
               </li>
             ))}
           </ul>

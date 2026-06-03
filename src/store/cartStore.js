@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import { getUserCart } from '../hooks/useData'
+import { SELL_MODE, canEditPrice, lineTotal as lineTotalImpl, total as cartTotal } from '../lib/pricing'
 
 // ---------------------------------------------------------------------------
 // Per-client shopping cart, backed by the `cart_items` table in Supabase
@@ -38,7 +39,7 @@ export const useCartStore = create((set, get) => ({
   /** Re-run the load for the current client (retry button). */
   reload: () => get().loadForUser(get().clientId),
 
-  /** Upsert one product row (quantity + optional custom price) in Supabase. */
+  /** Upsert one product row (quantity + custom price + sell mode) in Supabase. */
   _persistQty: async (productId, quantity) => {
     const { clientId, items } = get()
     if (clientId == null) return
@@ -51,7 +52,9 @@ export const useCartStore = create((set, get) => ({
           client_id: clientId,
           product_id: productId,
           quantity,
-          custom_price: item?.customPrice ?? null,
+          // Only kg items keep a custom price (Change A); ignore it otherwise.
+          custom_price: item && canEditPrice(item) ? item.customPrice ?? null : null,
+          sell_mode: item?.sellMode ?? null,
         },
         { onConflict: 'client_id,product_id' },
       )
@@ -70,12 +73,19 @@ export const useCartStore = create((set, get) => ({
     if (error) console.error('[cart] delete failed:', error)
   },
 
-  addItem: (product, qty = 1) => {
+  addItem: (product, qty = 1, opts = {}) => {
     const existing = get().items.find((i) => i.id === product.id)
     const newQty = (existing?.qty ?? 0) + qty
+    // Default cigarettes to PACK (pachka = the normal product price); a card can
+    // pass opts.sellMode to start in piece (dona) mode instead.
+    const sellMode = opts.sellMode ?? (product.soldByPiece ? SELL_MODE.PACK : null)
     set((state) => ({
       items: existing
-        ? state.items.map((i) => (i.id === product.id ? { ...i, qty: newQty } : i))
+        ? state.items.map((i) =>
+            i.id === product.id
+              ? { ...i, qty: newQty, ...(opts.sellMode ? { sellMode: opts.sellMode } : {}) }
+              : i,
+          )
         : [
             ...state.items,
             {
@@ -85,7 +95,13 @@ export const useCartStore = create((set, get) => ({
               unit: product.unit,
               image: product.image ?? null,
               qty,
-              customPrice: null, // client may override the price later (cart page)
+              customPrice: null, // only honored for kg items (Change A)
+              // Per-piece (cigarette) config snapshot from the product (Change B).
+              soldByPiece: Boolean(product.soldByPiece),
+              piecePrice: product.piecePrice ?? null,
+              pieceBundleQty: product.pieceBundleQty ?? null,
+              pieceBundlePrice: product.pieceBundlePrice ?? null,
+              sellMode,
             },
           ],
     }))
@@ -93,11 +109,14 @@ export const useCartStore = create((set, get) => ({
   },
 
   /**
-   * Set (or clear) a client's custom price override for one line. `value`:
+   * Set (or clear) a client's custom price override for one line. Allowed ONLY
+   * for kg items (Change A) — a no-op for anything else. `value`:
    *   null / '' -> clear the override (use the product's real price)
    *   a number  -> use that price; negatives/NaN are ignored (no-op).
    */
   setCustomPrice: (id, value) => {
+    const target = get().items.find((i) => i.id === id)
+    if (!target || !canEditPrice(target)) return // price fixed for non-kg items
     let custom = null
     if (value != null && String(value).trim() !== '') {
       const n = Number(value)
@@ -106,6 +125,16 @@ export const useCartStore = create((set, get) => ({
     }
     set((state) => ({
       items: state.items.map((i) => (i.id === id ? { ...i, customPrice: custom } : i)),
+    }))
+    const item = get().items.find((i) => i.id === id)
+    if (item) get()._persistQty(id, item.qty)
+  },
+
+  /** Switch a cigarette line between PACK (pachka) and PIECE (dona) pricing. */
+  setSellMode: (id, mode) => {
+    if (mode !== SELL_MODE.PACK && mode !== SELL_MODE.PIECE) return
+    set((state) => ({
+      items: state.items.map((i) => (i.id === id ? { ...i, sellMode: mode } : i)),
     }))
     const item = get().items.find((i) => i.id === id)
     if (item) get()._persistQty(id, item.qty)
@@ -139,16 +168,16 @@ export const useCartStore = create((set, get) => ({
   },
 }))
 
-// Effective unit price for a cart line: the custom override, else the product
-// price. Keeps the custom-price math in one place (mirrors lib/orders.js).
-const linePrice = (i) => (i.customPrice != null && i.customPrice !== '' ? Number(i.customPrice) : i.price)
-
-// Derived selectors (use with the store hook in components).
+// Derived selectors (use with the store hook in components). All money math
+// goes through lib/pricing.js so the kg-custom + per-piece rules apply.
 export const selectCount = (state) => state.items.reduce((sum, i) => sum + i.qty, 0)
-export const selectTotal = (state) => state.items.reduce((sum, i) => sum + i.qty * linePrice(i), 0)
+export const selectTotal = (state) => cartTotal(state.items)
 
 /** Compute count/total for an arbitrary items array (e.g. admin viewing a cart). */
 export const cartTotals = (items = []) => ({
   count: items.reduce((s, i) => s + i.qty, 0),
-  total: items.reduce((s, i) => s + i.qty * linePrice(i), 0),
+  total: cartTotal(items),
 })
+
+// Per-line total (qty + all pricing rules) for the cart UI.
+export const cartLineTotal = (item) => lineTotalImpl(item)

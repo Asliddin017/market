@@ -102,8 +102,8 @@ export default function Products() {
       setTimeout(() => setToast(''), 2500)
     }
   }
-  function handleAddToCart(p) {
-    addToCart(p, 1)
+  function handleAddToCart(p, opts) {
+    addToCart(p, 1, opts)
     setToast(`"${p.name}" savatga qo'shildi`)
     setTimeout(() => setToast(''), 2000)
   }

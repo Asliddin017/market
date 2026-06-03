@@ -5,6 +5,8 @@ import {
   useOrder,
   setOrderStatus,
   setOrderItemAvailable,
+  setOrderItemQuantity,
+  setOrderItemCustomPrice,
   deleteOrder,
 } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
@@ -19,6 +21,7 @@ import {
   statusMeta,
   isReceiptReady,
 } from '../lib/orders'
+import { canEditPrice, canSellByPiece, isPieceMode, displayUnit, pieceModeLabel } from '../lib/pricing'
 import OrderStatusBadge from '../components/OrderStatusBadge'
 import Receipt from '../components/Receipt'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -85,6 +88,32 @@ export default function OrderDetail() {
     }
   }
 
+  async function changeQty(item, nextQty) {
+    const q = Math.max(1, Math.floor(Number(nextQty) || 1))
+    if (q === item.quantity) return
+    setBusy(true)
+    try {
+      await setOrderItemQuantity(item.id, q)
+    } catch (err) {
+      console.error('[order] quantity change failed:', err)
+      flash('Sonini o‘zgartirib bo‘lmadi')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function changePrice(item, value) {
+    setBusy(true)
+    try {
+      await setOrderItemCustomPrice(item.id, value)
+    } catch (err) {
+      console.error('[order] price change failed:', err)
+      flash('Narxni o‘zgartirib bo‘lmadi')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function doDelete() {
     setConfirmDelete(false)
     try {
@@ -130,36 +159,93 @@ export default function OrderDetail() {
           ) : (
             items.map((it) => {
               const gone = it.isAvailable === false
-              const hasCustom = it.customPrice != null
+              const piece = isPieceMode(it)
+              const hasCustom = canEditPrice(it) && it.customPrice != null
+              const unitWord = displayUnit(it)
+              const editable = isStaff && !gone
               return (
                 <div
                   key={it.id}
-                  className={`glass flex items-center gap-4 rounded-2xl p-3 ${gone ? 'opacity-60' : ''}`}
+                  className={`glass flex flex-wrap items-center gap-4 rounded-2xl p-3 ${gone ? 'opacity-60' : ''}`}
                 >
                   <div className="min-w-0 flex-1">
                     <h3 className={`truncate font-semibold ${gone ? 'line-through' : ''}`}>
                       {it.name}
+                      {canSellByPiece(it) && (
+                        <span className="ml-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-slate-300">
+                          {piece ? '🚬 dona' : '📦 pachka'}
+                        </span>
+                      )}
                       {gone && <span className="ml-2 text-xs font-bold text-rose-300">YO'Q</span>}
                     </h3>
                     <p className="text-sm">
-                      {hasCustom ? (
+                      {piece ? (
+                        <span className="text-brand-300">{pieceModeLabel(it)}</span>
+                      ) : hasCustom ? (
                         <>
                           <span className="text-slate-500 line-through">{formatSom(it.originalPrice)}</span>{' '}
                           <span className="text-gold-300">{formatSom(effectivePrice(it))}</span>{' '}
                           <span className="text-[10px] text-gold-300">(maxsus narx)</span>
+                          <span className="text-slate-500"> / {unitWord}</span>
                         </>
                       ) : (
-                        <span className="text-brand-300">{formatSom(effectivePrice(it))}</span>
+                        <>
+                          <span className="text-brand-300">{formatSom(effectivePrice(it))}</span>
+                          <span className="text-slate-500"> / {unitWord}</span>
+                        </>
                       )}
-                      <span className="text-slate-500"> / {it.unit}</span>
                     </p>
                     <p className="text-xs text-slate-400">
-                      {it.quantity} {it.unit} · Jami:{' '}
+                      {it.quantity} {unitWord} · Jami:{' '}
                       <span className={gone ? 'text-slate-500 line-through' : ''}>
                         {formatSom(lineTotal(it))}
                       </span>
                     </p>
+
+                    {/* Seller/admin: edit the kg price right on the order (Change A). */}
+                    {editable && canEditPrice(it) && (
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <label className="text-[11px] text-slate-400">Narx (kg):</label>
+                        <input
+                          type="number"
+                          min="0"
+                          defaultValue={it.customPrice ?? ''}
+                          placeholder={String(it.originalPrice)}
+                          onBlur={(e) => changePrice(it, e.target.value)}
+                          disabled={busy}
+                          className="w-24 rounded-lg bg-ink-900/60 px-2 py-1 text-xs"
+                        />
+                      </div>
+                    )}
                   </div>
+
+                  {/* Seller/admin: edit quantity for ANY line (Change A #3). */}
+                  {editable && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => changeQty(it, it.quantity - 1)}
+                        disabled={busy || it.quantity <= 1}
+                        className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20 disabled:opacity-40"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        value={it.quantity}
+                        onChange={(e) => changeQty(it, e.target.value)}
+                        disabled={busy}
+                        className="w-12 rounded-lg bg-ink-900/60 py-1 text-center text-sm"
+                      />
+                      <button
+                        onClick={() => changeQty(it, it.quantity + 1)}
+                        disabled={busy}
+                        className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
 
                   {/* Seller/admin: mark a line unavailable / restore */}
                   {isStaff && (

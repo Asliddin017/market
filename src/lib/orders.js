@@ -1,12 +1,18 @@
 // ---------------------------------------------------------------------------
 // Order (buyurtma) domain logic — framework-free + pure so it's unit-testable
-// without Supabase. The UI and the data layer both import from here so the
-// money math and status labels live in exactly one place.
+// without Supabase. The UI and the data layer both import from here for status
+// labels + order helpers.
+//
+// MONEY MATH lives in lib/pricing.js (the single source of truth, mirrored by
+// the SQL trigger). The money helpers below just re-export from there so older
+// imports (effectivePrice / lineTotal / orderTotal) keep working and stay
+// piece-/kg-aware automatically.
 //
 // Pickup only — there is no delivery. The seller prepares the order; the client
-// collects it. Totals count ONLY available lines and use the custom price when
-// the client overrode it (else the original product price).
+// collects it. Totals count ONLY available lines.
 // ---------------------------------------------------------------------------
+
+import { unitPrice, lineTotal as lineTotalImpl, total as totalImpl } from './pricing'
 
 export const ORDER_STATUS = {
   PLACED: 'buyurtma_berildi',
@@ -58,22 +64,22 @@ export function nextStatus(status) {
   return ORDER_STATUS_FLOW[i + 1]
 }
 
-/** Effective unit price for a line: the custom override, else the original. */
+/**
+ * Effective UNIT price for display (per kg / dona / pachka). Delegates to
+ * pricing.js so the kg-only-custom and per-piece rules apply consistently.
+ */
 export function effectivePrice(item) {
-  const custom = item?.customPrice
-  return custom != null && custom !== '' ? Number(custom) : Number(item?.originalPrice ?? item?.price ?? 0)
+  return unitPrice(item)
 }
 
-/** Money for one line = effective unit price * quantity. */
+/** Money for one line (quantity + all pricing rules). */
 export function lineTotal(item) {
-  return effectivePrice(item) * Number(item?.quantity ?? item?.qty ?? 0)
+  return lineTotalImpl(item)
 }
 
 /** Grand total of an order: only available lines are counted. */
 export function orderTotal(items = []) {
-  return items
-    .filter((i) => i.isAvailable !== false)
-    .reduce((sum, i) => sum + lineTotal(i), 0)
+  return totalImpl(items)
 }
 
 /** Split items into available vs. unavailable ("yo'q") for the receipt. */

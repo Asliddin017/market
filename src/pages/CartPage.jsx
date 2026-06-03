@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { useCartStore, selectTotal, selectCount } from '../store/cartStore'
+import { useCartStore, selectTotal, selectCount, cartLineTotal } from '../store/cartStore'
 import { useAuthStore } from '../store/authStore'
 import { createOrderFromCart } from '../hooks/useData'
 import ProductImage from '../components/ProductImage'
 import ConfirmDialog from '../components/ConfirmDialog'
 import { LoadingState, ErrorState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
+import { SELL_MODE, canEditPrice, canSellByPiece, isPieceMode, pieceModeLabel } from '../lib/pricing'
 
 export default function CartPage() {
   const items = useCartStore((s) => s.items)
@@ -15,6 +16,7 @@ export default function CartPage() {
   const decrement = useCartStore((s) => s.decrement)
   const setQty = useCartStore((s) => s.setQty)
   const setCustomPrice = useCartStore((s) => s.setCustomPrice)
+  const setSellMode = useCartStore((s) => s.setSellMode)
   const removeItem = useCartStore((s) => s.removeItem)
   const clear = useCartStore((s) => s.clear)
   const total = useCartStore(selectTotal)
@@ -119,40 +121,66 @@ export default function CartPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold">{item.name}</h3>
-                  {item.customPrice != null ? (
+
+                  {/* Price line: kg-custom (struck), piece (dona), or fixed. */}
+                  {canEditPrice(item) && item.customPrice != null ? (
                     <p className="text-sm">
                       <span className="text-slate-500 line-through">{formatSom(item.price)}</span>{' '}
                       <span className="text-gold-300">{formatSom(item.customPrice)}</span>
                       <span className="text-slate-500"> / {item.unit}</span>
                     </p>
+                  ) : isPieceMode(item) ? (
+                    <p className="text-sm text-brand-300">{pieceModeLabel(item)}</p>
                   ) : (
-                    <p className="text-sm text-brand-300">{formatSom(item.price)} / {item.unit}</p>
+                    <p className="text-sm text-brand-300">
+                      {formatSom(item.price)} / {canSellByPiece(item) ? 'pachka' : item.unit}
+                    </p>
                   )}
 
-                  {/* Custom price override (client can set their own price). */}
-                  <div className="mt-1 flex items-center gap-1.5">
-                    <label className="text-[11px] text-slate-400">Maxsus narx:</label>
-                    <input
-                      type="number"
-                      min="0"
-                      placeholder={String(item.price)}
-                      value={item.customPrice ?? ''}
-                      onChange={(e) => setCustomPrice(item.id, e.target.value)}
-                      className="w-24 rounded-lg bg-ink-900/60 px-2 py-1 text-xs"
-                    />
-                    {item.customPrice != null && (
+                  {/* Cigarettes: switch between Pachka (pack) and Dona (piece). */}
+                  {canSellByPiece(item) && (
+                    <div className="mt-1.5 inline-flex gap-1">
                       <button
-                        onClick={() => setCustomPrice(item.id, '')}
-                        className="text-[11px] text-slate-400 hover:text-rose-300"
-                        title="Asl narxga qaytarish"
+                        onClick={() => setSellMode(item.id, SELL_MODE.PACK)}
+                        className={`chip justify-center px-2.5 py-0.5 text-[11px] ${item.sellMode !== SELL_MODE.PIECE ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
                       >
-                        ↺
+                        📦 Pachka
                       </button>
-                    )}
-                  </div>
+                      <button
+                        onClick={() => setSellMode(item.id, SELL_MODE.PIECE)}
+                        className={`chip justify-center px-2.5 py-0.5 text-[11px] ${item.sellMode === SELL_MODE.PIECE ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
+                      >
+                        🚬 Dona
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Custom price override — ONLY for kg (scale) items (Change A). */}
+                  {canEditPrice(item) && (
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <label className="text-[11px] text-slate-400">Maxsus narx:</label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder={String(item.price)}
+                        value={item.customPrice ?? ''}
+                        onChange={(e) => setCustomPrice(item.id, e.target.value)}
+                        className="w-24 rounded-lg bg-ink-900/60 px-2 py-1 text-xs"
+                      />
+                      {item.customPrice != null && (
+                        <button
+                          onClick={() => setCustomPrice(item.id, '')}
+                          className="text-[11px] text-slate-400 hover:text-rose-300"
+                          title="Asl narxga qaytarish"
+                        >
+                          ↺
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   <p className="mt-1 text-xs text-slate-400">
-                    Jami: {formatSom((item.customPrice ?? item.price) * item.qty)}
+                    Jami: {formatSom(cartLineTotal(item))}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
