@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../store/authStore'
 import { slugify, toTitleCase } from '../lib/utils'
+import { resolveCategoryIcon } from '../lib/categoryIcons'
 
 // ---------------------------------------------------------------------------
 // Data access layer (Supabase).
@@ -39,7 +40,9 @@ export const mapCategory = (r) => ({
   id: r.id,
   name: r.name,
   slug: r.slug,
-  icon: r.emoji ?? '📦',
+  // Icon is resolved from the NAME (single source of truth) so it's always
+  // correct + future-proof — the stored `emoji` column is not used for display.
+  icon: resolveCategoryIcon(r.name),
   createdAt: r.created_at,
   updatedAt: r.updated_at,
 })
@@ -441,7 +444,9 @@ export async function getPriceHistory(productId) {
 
 export async function saveCategory(category) {
   const name = toTitleCase(category.name)
-  const payload = { name, slug: slugify(name), emoji: category.icon || '📦' }
+  // Emoji auto-resolves from the name (kept in the DB column for export/seed
+  // consistency, though the app resolves it again at render via mapCategory).
+  const payload = { name, slug: slugify(name), emoji: resolveCategoryIcon(name) }
   if (category.id) {
     const { error } = await supabase.from('categories').update(payload).eq('id', category.id)
     if (error) throw error
@@ -539,11 +544,10 @@ export async function importData(payload) {
   // [{name, categoryId|category, price, unit, image}]) or the raw products.json
   // shape (categories: ["Name", ...]).
   const rawCats = payload?.categories ?? []
-  const catRows = rawCats.map((c) =>
-    typeof c === 'string'
-      ? { name: toTitleCase(c), slug: slugify(c), emoji: '📦' }
-      : { name: toTitleCase(c.name), slug: slugify(c.name), emoji: c.icon || c.emoji || '📦' },
-  )
+  const catRows = rawCats.map((c) => {
+    const name = toTitleCase(typeof c === 'string' ? c : c.name)
+    return { name, slug: slugify(name), emoji: resolveCategoryIcon(name) }
+  })
 
   const { data: cats, error: cErr } = await supabase
     .from('categories')

@@ -7,24 +7,5 @@ export const UNITS = [
   { value: 'litr', label: 'litr' },
 ]
 
-// Emoji per imported category (falls back to 📦 for anything unmapped).
-export const CATEGORY_ICONS = {
-  'Tagaklar (Pampers)': '🍼',
-  'Pishirilgan kolbasa': '🥓',
-  'Dudlangan kolbasa': '🥩',
-  "Go'sht mahsulotlari": '🍖',
-  Sosiska: '🌭',
-  Pishloq: '🧀',
-  Sigaretlar: '🚬',
-  Muzqaymoq: '🍦',
-  'Muzlatilgan mahsulotlar': '🧊',
-  // Drinks, split by package type.
-  Ichimliklar: '🧃',
-  'Ichimliklar — Baklashka': '🧴',
-  'Ichimliklar — Banka': '🥤',
-  'Ichimliklar — Butulka': '🍾',
-  // Energy drinks, split by package type.
-  'Energetik ichimliklar': '⚡',
-  'Energetik — Banka': '⚡',
-  'Energetik — Baklashka': '⚡',
-}
+// Category emojis now live in src/lib/categoryIcons.js (resolveCategoryIcon),
+// which maps a category NAME -> emoji by keyword so new categories auto-resolve.

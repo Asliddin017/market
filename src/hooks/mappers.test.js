@@ -49,17 +49,19 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
     })
   })
 
-  it('mapCategory maps fields and defaults the icon emoji', () => {
-    const row = { id: 'c1', name: 'Sut', slug: 'sut', emoji: null, created_at: 't', updated_at: 't2' }
+  it('mapCategory resolves the icon from the NAME (ignores stored emoji)', () => {
+    // Stored emoji is wrong/legacy on purpose — the resolver wins.
+    const row = { id: 'c1', name: 'Sut', slug: 'sut', emoji: '🍼', created_at: 't', updated_at: 't2' }
     expect(mapCategory(row)).toEqual({
       id: 'c1',
       name: 'Sut',
       slug: 'sut',
-      icon: '📦',
+      icon: '🥛', // resolved from "Sut", not the stored 🍼
       createdAt: 't',
       updatedAt: 't2',
     })
-    expect(mapCategory({ id: 'c2', emoji: '⚡' }).icon).toBe('⚡')
+    expect(mapCategory({ id: 'c2', name: 'Energetik — Banka' }).icon).toBe('⚡')
+    expect(mapCategory({ id: 'c3', name: 'Nomalum kategoriya' }).icon).toBe('🛒') // default
   })
 
   it('mapProfile maps username/role/createdAt', () => {

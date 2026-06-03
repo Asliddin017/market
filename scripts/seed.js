@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
 import { slugify, toTitleCase } from '../src/lib/utils.js'
-import { CATEGORY_ICONS } from '../src/lib/constants.js'
+import { resolveCategoryIcon } from '../src/lib/categoryIcons.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
@@ -101,7 +101,7 @@ async function main() {
   const categoryRows = categoryNames.map((name) => ({
     name,
     slug: slugify(name),
-    emoji: CATEGORY_ICONS[name] ?? '📦',
+    emoji: resolveCategoryIcon(name),
   }))
   const { data: cats, error: catErr } = await supabase
     .from('categories')

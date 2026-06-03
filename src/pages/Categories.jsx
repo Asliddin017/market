@@ -7,8 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import QuickAddProducts from '../components/QuickAddProducts'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 import { formatDateTime } from '../lib/utils'
-
-const ICONS = ['⚡', '🥛', '🍞', '🍎', '🥕', '🍫', '🧃', '📦', '🧀', '🍗', '🐟', '🧂', '☕', '🍷']
+import { resolveCategoryIcon } from '../lib/categoryIcons'
 
 // Stable empty fallback so the counts memo keeps identity while data loads.
 const EMPTY = []
@@ -32,7 +31,6 @@ export default function Categories() {
 
   const [editing, setEditing] = useState(null) // category | {} for new | null
   const [name, setName] = useState('')
-  const [icon, setIcon] = useState('📦')
   const [toDelete, setToDelete] = useState(null)
   const [warn, setWarn] = useState('')
   const [addingTo, setAddingTo] = useState(null) // category for quick-add mode
@@ -46,12 +44,10 @@ export default function Categories() {
   function startNew() {
     setEditing({})
     setName('')
-    setIcon('📦')
   }
   function startEdit(c) {
     setEditing(c)
     setName(c.name)
-    setIcon(c.icon ?? '📦')
   }
   function cancel() {
     setEditing(null)
@@ -65,7 +61,7 @@ export default function Categories() {
     e.preventDefault()
     if (!name.trim()) return
     try {
-      await saveCategory({ id: editing?.id, name, icon })
+      await saveCategory({ id: editing?.id, name })
       cancel()
     } catch (err) {
       console.error('[categories] save failed:', err)
@@ -128,18 +124,10 @@ export default function Categories() {
                 <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Energetik ichimliklar" autoFocus />
               </div>
               <div>
-                <label className="label">Belgi</label>
-                <div className="flex flex-wrap gap-1">
-                  {ICONS.map((ic) => (
-                    <button
-                      type="button"
-                      key={ic}
-                      onClick={() => setIcon(ic)}
-                      className={`h-9 w-9 rounded-lg text-lg transition ${icon === ic ? 'bg-brand-500/30 ring-2 ring-brand-400' : 'bg-white/5 hover:bg-white/10'}`}
-                    >
-                      {ic}
-                    </button>
-                  ))}
+                <label className="label">Belgi (avtomatik)</label>
+                <div className="flex h-[46px] items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4">
+                  <span className="text-2xl">{resolveCategoryIcon(name)}</span>
+                  <span className="text-xs text-slate-400">nomdan tanlanadi</span>
                 </div>
               </div>
             </div>
