@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCategories, useProducts, saveCategory, deleteCategory } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { can } from '../lib/roles'
+import { searchCategories } from '../lib/search'
+import SearchBar from '../components/SearchBar'
 import ConfirmDialog from '../components/ConfirmDialog'
 import QuickAddProducts from '../components/QuickAddProducts'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
@@ -34,12 +36,23 @@ export default function Categories() {
   const [toDelete, setToDelete] = useState(null)
   const [warn, setWarn] = useState('')
   const [addingTo, setAddingTo] = useState(null) // category for quick-add mode
+  const [query, setQuery] = useState('')
 
   const counts = useMemo(() => {
     const map = new Map()
     for (const p of products) map.set(p.categoryId, (map.get(p.categoryId) ?? 0) + 1)
     return map
   }, [products])
+
+  // Defer the query so typing stays smooth while the fuzzy filter runs against
+  // the deferred value (same approach as the Products page). `categories` is
+  // already role-visible (useCategories drops client-hidden ones), so search
+  // never surfaces a hidden category.
+  const deferredQuery = useDeferredValue(query)
+  const filtered = useMemo(
+    () => searchCategories(deferredQuery, categories),
+    [deferredQuery, categories],
+  )
 
   function startNew() {
     setEditing({})
@@ -101,6 +114,14 @@ export default function Categories() {
         )}
       </div>
 
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        resultCount={filtered.length}
+        resultNoun="kategoriya"
+        placeholder="Kategoriya qidirish… (masalan: shokolad, choy)"
+      />
+
       {warn && (
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-xl bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
           ⚠️ {warn}
@@ -146,9 +167,11 @@ export default function Categories() {
         <LoadingState label="Kategoriyalar yuklanmoqda…" />
       ) : categories.length === 0 ? (
         <EmptyState icon="🏷️" title="Hech narsa topilmadi" hint="Hozircha kategoriyalar yo'q." />
+      ) : filtered.length === 0 ? (
+        <EmptyState icon="🔍" title="Hech narsa topilmadi" hint="Boshqa so'z bilan urinib ko'ring." />
       ) : (
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {categories.map((c) => (
+        {filtered.map((c) => (
           <motion.div
             key={c.id}
             layout

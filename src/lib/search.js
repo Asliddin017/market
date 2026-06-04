@@ -134,3 +134,28 @@ export function smartSearch(query, products, categories) {
     .sort((a, b) => a.score - b.score)
     .map((s) => s.item)
 }
+
+/**
+ * Fuzzy-search categories by NAME. Uses the SAME normalize() + Fuse settings as
+ * the category-matching step inside smartSearch, so the Categories page filters
+ * with exactly the behaviour clients/staff already get on the Products page
+ * (typo tolerant, case-insensitive, Latin + Cyrillic). Empty query returns the
+ * categories unchanged (original order preserved).
+ *
+ * @param {string} query     raw search text
+ * @param {Array}  categories categories to filter (already role-visible)
+ * @returns {Array} categories sorted by relevance (best match first).
+ */
+export function searchCategories(query, categories = []) {
+  const q = normalize(query)
+  if (!q) return categories
+
+  const fuse = new Fuse(categories, {
+    keys: [{ name: 'name', getFn: (c) => normalize(c.name) }],
+    includeScore: true,
+    threshold: 0.45, // same generosity as smartSearch's category step
+    ignoreLocation: true,
+    minMatchCharLength: 1,
+  })
+  return fuse.search(q).map((m) => m.item)
+}

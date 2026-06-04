@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 
 /** Real-time search input. Parent owns the value and runs smartSearch on change. */
-export default function SearchBar({ value, onChange, resultCount, placeholder }) {
+export default function SearchBar({ value, onChange, resultCount, placeholder, resultNoun = 'natija' }) {
   return (
     <div className="relative">
       <motion.div
@@ -33,7 +33,7 @@ export default function SearchBar({ value, onChange, resultCount, placeholder })
           animate={{ opacity: 1 }}
           className="mt-2 pl-1 text-xs text-slate-400"
         >
-          {resultCount} ta natija topildi
+          {resultCount} ta {resultNoun} topildi
         </motion.p>
       )}
     </div>

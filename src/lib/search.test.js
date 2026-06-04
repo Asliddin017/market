@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalize, smartSearch } from './search'
+import { normalize, smartSearch, searchCategories } from './search'
 
 describe('normalize', () => {
   it('folds apostrophe variants and case', () => {
@@ -61,5 +61,36 @@ describe('smartSearch', () => {
   it('returns nothing for a clearly unrelated query', () => {
     const res = smartSearch('xyzqwertyuiop', products, categories)
     expect(res).toHaveLength(0)
+  })
+})
+
+describe('searchCategories', () => {
+  const cats = [
+    { id: 'c1', name: 'Shokolad' },
+    { id: 'c2', name: 'Choy' },
+    { id: 'c3', name: 'Sut mahsulotlari' },
+    { id: 'c4', name: 'Энергетик' },
+  ]
+
+  it('returns all categories (unchanged order) for an empty query', () => {
+    expect(searchCategories('', cats)).toBe(cats)
+    expect(searchCategories('   ', cats).map((c) => c.id)).toEqual(['c1', 'c2', 'c3', 'c4'])
+  })
+
+  it('matches by name, case-insensitive', () => {
+    expect(searchCategories('shokolad', cats).map((c) => c.id)).toContain('c1')
+    expect(searchCategories('CHOY', cats).map((c) => c.id)).toContain('c2')
+  })
+
+  it('is typo tolerant ("shokalad" finds Shokolad)', () => {
+    expect(searchCategories('shokalad', cats).map((c) => c.id)).toContain('c1')
+  })
+
+  it('matches a Latin query against a Cyrillic category name', () => {
+    expect(searchCategories('energetik', cats).map((c) => c.id)).toContain('c4')
+  })
+
+  it('returns an empty array when nothing matches', () => {
+    expect(searchCategories('xyzqwertyuiop', cats)).toHaveLength(0)
   })
 })
