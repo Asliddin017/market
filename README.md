@@ -212,6 +212,34 @@ frontendga / Vercel ga **qo'shmang**).
 > ⚠️ `reseed` **barcha savatchalarni ham tozalaydi** (cart_items butunlay
 > o'chiriladi), chunki barcha mahsulot ID'lari yangidan yaratiladi.
 
+#### Qo'shimcha mahsulotlarni MERGE qilish (`npm run import-extra`)
+Mavjud mahsulotlarga **tegmasdan** yangi mahsulot/kategoriya partiyasini qo'shish
+uchun `src/data/products_extra.json` faylini joylashtiring (struktura
+`products.json` bilan **bir xil**: `{ "categories": [...], "products": [...] }`),
+so'ng:
+```bash
+npm run import-extra
+```
+Bu skript **faqat qo'shadi** (`scripts/import-extra.js`) — `seed`/`reseed` dan
+farqli o'laroq hech narsani **o'chirmaydi, qayta yozmaydi yoki qayta seed
+qilmaydi**:
+
+- **Kategoriyalar**: fayldagi **mavjud bo'lmagan** kategoriyalarnigina yaratadi
+  (nom bo'yicha solishtiradi). Mavjud kategoriyalar (emoji/slug) **o'zgarmaydi**.
+  Yangi kategoriya emoji'si avtomatik `categoryIcons.js` resolveridan olinadi.
+- **Mahsulotlar**: faqat **mavjud bo'lmagan** `(kategoriya + nom)` juftliklarini
+  qo'shadi. Nomlar Title Case (yozishdagi normalizatsiya) bilan solishtiriladi.
+- **Idempotent**: ikkinchi marta ishga tushirsangiz hech narsa qo'shilmaydi.
+  Oxirida nechta **qo'shildi** va nechta **o'tkazib yuborildi** (mavjud) hisobini
+  chiqaradi, hamda biror kategoriya standart 🛒 ikonkaga tushsa **ogohlantiradi**.
+- Yangi mahsulotlar **bir xil narx qoidasiga** bo'ysunadi: `kg` mahsulotlarda
+  narx tahrirlanadi, `dona` da narx qat'iy (mantiq `src/lib/pricing.js` + UI da,
+  `unit` ustuniga bog'liq). Bu kategoriyalar **sigaret emas**, shuning uchun
+  mijozlarga ko'rinadi (maxsus belgilar qo'yilmaydi).
+
+Xuddi `seed` kabi `.env.local` dagi `SUPABASE_SERVICE_ROLE_KEY` ni o'qiydi (RLS ni
+chetlab o'tadi — frontendga / Vercel ga **qo'shmang**).
+
 ### 7) Birinchi adminni yarating
 1. Ilovani oching (`npm run dev`) va **`Asliddin017`** username bilan ro'yxatdan o'ting
    (parolni o'zingiz tanlaysiz — Supabase saqlaydi).
@@ -285,13 +313,15 @@ supabase/
 ├── orders.sql              # Buyurtma tizimi: orders + order_items + RLS + triggerlar (schema.sql dan keyin)
 └── piece_pricing.sql       # Narx qoidalari (kg/dona) + sigaret dona narxi (orders.sql dan keyin)
 scripts/
-└── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
+├── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
+└── import-extra.js         # products_extra.json ni MERGE (additive, idempotent; mavjudga tegmaydi)
 .env.example                # Env o'zgaruvchilar shabloni
 vercel.json                 # SPA rewrite (F5 da 404 bo'lmasligi uchun)
 src/
 ├── App.jsx                 # Sessiya bootstrap, rolga asoslangan routing
 ├── main.jsx                # React + Router + ErrorBoundary
 ├── data/products.json      # 194 mahsulot / 14 kategoriya (seed manbasi)
+├── data/products_extra.json # Qo'shimcha mahsulotlar (import-extra MERGE manbasi)
 ├── store/
 │   ├── authStore.js        # Supabase Auth (login / register / sessiya / rol)
 │   ├── cartStore.js        # Savatcha — Supabase cart_items (+ maxsus narx)

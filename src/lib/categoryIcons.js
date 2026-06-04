@@ -30,6 +30,7 @@ const RULES = [
   { emoji: '🥫', keys: ['banka', 'банк'] },
   { emoji: '💧', keys: ['baklashka', 'baklajka', 'ichimlik', 'suv', 'напит', 'вода'] },
   { emoji: '🍵', keys: ['choy', 'чай'] },
+  { emoji: '☕', keys: ['kofe', 'кофе', 'кофей'] },
 
   // --- frozen --------------------------------------------------------------
   { emoji: '🍦', keys: ['muzqaymoq', 'morojen', 'morojniy', 'морож'] },
@@ -41,6 +42,7 @@ const RULES = [
 
   // --- dairy & eggs --------------------------------------------------------
   { emoji: '🧀', keys: ['pishloq', 'сыр'] },
+  // "quyultirilgan sut" (condensed milk) also lands here via the `sut` key.
   { emoji: '🥛', keys: ['sut', 'молоч', 'молоко'] },
   { emoji: '🥚', keys: ['tuxum', 'яйцо', 'яйц'] },
 
@@ -48,21 +50,54 @@ const RULES = [
   { emoji: '🚬', keys: ['sigaret', 'tamaki', 'сигарет', 'табак'] },
   { emoji: '👶', keys: ['tagak', 'taglik', 'pampers', 'подгуз', 'памперс'] },
 
-  // --- produce / bakery / pantry ------------------------------------------
+  // --- snacks & sweets -----------------------------------------------------
+  { emoji: '🍫', keys: ['shokolad', 'шоколад'] },
+  // popcorn / corn BEFORE the generic snack rule (neither shares a substring
+  // with the others, but keep the edible-corn intent explicit).
+  { emoji: '🍿', keys: ['popcorn', "makkajo'xori", 'makkajoxori', 'кукуруз'] },
+  { emoji: '🍟', keys: ['chips', 'snek', 'snack', 'чипс'] },
+  { emoji: '🍪', keys: ['pechenye', 'pechene', 'vafli', 'vafel', 'печенье', 'вафл'] },
+  // Sweets & gum & sugar.
+  {
+    emoji: '🍬',
+    keys: [
+      'shirinlik', 'konfet', 'конфет', 'сладк',
+      'saqich', 'jvachka', 'jevachka', 'жвачк',
+      'shakar', 'сахар',
+    ],
+  },
+
+  // --- pantry: pasta / noodles / canned / sauces / grains ------------------
+  { emoji: '🍝', keys: ['makaron', 'макарон', 'spagetti', 'спагетти'] },
+  { emoji: '🍜', keys: ['lapsha', 'лапша', 'doshirak', 'доширак'] },
+  { emoji: '🥫', keys: ['konserva', 'консерв', 'tushonka', 'тушен'] },
+  { emoji: '🥫', keys: ['mayonez', 'майонез', 'ketchup', 'kechup', 'кетчуп', 'sous', 'соус'] },
+  // Grains / cereals / legumes. `dukkak` + `yorma` + `крупа` cover the usual
+  // names ("Don va dukkaklilar", "Yormalar (krupa)"); `don mahsulot` covers
+  // "Don mahsulotlari" without a bare "don" that could over-match.
+  {
+    emoji: '🌾',
+    keys: ['don mahsulot', 'donli', 'dukkak', 'yorma', "yormalar", 'крупа', 'крупы', "g'alla", 'galla'],
+  },
+
+  // --- produce / bakery ----------------------------------------------------
   { emoji: '🥕', keys: ['sabzavot', 'овощ'] },
   { emoji: '🍎', keys: ['meva', 'фрукт'] },
   { emoji: '🍞', keys: ['non', 'bulochka', 'хлеб'] },
-  { emoji: '🍬', keys: ['shirinlik', 'konfet', 'конфет', 'сладк'] },
-  { emoji: '🥫', keys: ['konserva', 'консерв'] },
 
-  // --- parfyumeriya / personal care (a category added later) ---------------
+  // --- parfyumeriya / personal care ----------------------------------------
   // Hair dye BEFORE the generic "yog'" (oil) rule: "Soch bo'yog'i" normalises
   // to "soch boyogi", which contains "yog" — so 🎨 must win first, else it
   // would fall to the butter/oil icon 🧈.
   { emoji: '🎨', keys: ["soch bo'yog", 'soch boyog', "bo'yoq", 'boyoq', 'краска для волос'] },
 
-  // Generic edible oil/butter — kept AFTER hair-dye so it can't steal "boyog".
-  { emoji: '🧈', keys: ["yog'", 'yog', 'масло'] },
+  // Razor / shaving — ALSO before "yog'" for the same substring-trap reason
+  // (and so it can never fall to the oil icon). "soqol"/"ustara"/"britva".
+  { emoji: '🪒', keys: ['soqol', 'ustara', 'britva', 'бритв', 'станок для брит'] },
+
+  // Generic edible oil/butter — kept AFTER hair-dye & razor so neither can be
+  // stolen by the "yog"/"масло" substring. "sariyog'"/"margarin" land here too.
+  { emoji: '🧈', keys: ["yog'", 'yog', 'масло', 'margarin', 'маргарин', 'сливочн'] },
   { emoji: '🪥', keys: ['tish pasta', 'tish', 'зубн'] },
   { emoji: '🧼', keys: ['sovun', 'мыло', 'gigiyena', 'гигиен'] },
   { emoji: '💄', keys: ['kosmetik', 'косметик', 'upa', 'pardoz', 'помад'] },
@@ -73,9 +108,18 @@ const RULES = [
       'parfyum', 'parfumer', 'atir', 'духи', 'парфюм',
       'shampun', 'шампун',
       'dezodorant', 'dezadarant', 'дезодор',
-      'krem', 'крем',
+      'krem', 'крем', 'tana parvarish',
     ],
   },
+
+  // --- household cleaning --------------------------------------------------
+  // Dish-washing BEFORE the generic laundry/cleaning rule.
+  { emoji: '🧽', keys: ['idish yuvish', 'idish-yuvish', 'средство для посуд', 'для посуд'] },
+  { emoji: '🧴', keys: ['kir yuvish', 'tozalash', 'стирк', 'порош', 'стиральн'] },
+  { emoji: '🧻', keys: ['salfetka', "qog'oz", 'qogoz', 'салфет', 'бумаг'] },
+
+  // --- pest control --------------------------------------------------------
+  { emoji: '🦟', keys: ['hasharot', 'dixlofos', 'дихлофос', 'от насеком'] },
 ]
 
 /**

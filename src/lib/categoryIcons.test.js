@@ -83,6 +83,98 @@ describe('future categories auto-resolve', () => {
   })
 })
 
+describe('extra catalogue (products_extra.json) categories auto-resolve', () => {
+  const cases = [
+    // snacks & sweets
+    ['Shokolad', '🍫'],
+    ['Шоколад', '🍫'],
+    ['Chips va sneklar', '🍟'],
+    ['Чипсы', '🍟'],
+    ['Saqich (jvachka)', '🍬'],
+    ['Жвачка', '🍬'],
+    ['Pechenye va vafli', '🍪'],
+    ['Печенье', '🍪'],
+    ['Konfetlar', '🍬'],
+    ['Shakar', '🍬'],
+    ['Сахар', '🍬'],
+    ['Popcorn', '🍿'],
+    ["Makkajo'xori", '🍿'],
+    // hot drinks
+    ['Kofe', '☕'],
+    ['Кофе', '☕'],
+    ['Choy', '🍵'],
+    // pantry
+    ['Makaron', '🍝'],
+    ['Макароны', '🍝'],
+    ['Lapsha (doshirak)', '🍜'],
+    ['Лапша', '🍜'],
+    ['Konservalar', '🥫'],
+    ['Консервы', '🥫'],
+    ['Mayonez va sous', '🥫'],
+    ['Ketchup', '🥫'],
+    ['Соус', '🥫'],
+    ['Don mahsulotlari', '🌾'],
+    ['Dukkaklilar', '🌾'],
+    ['Yormalar', '🌾'],
+    ['Крупа', '🌾'],
+    // oils / dairy
+    ["Yog'lar", '🧈'],
+    ['Масло', '🧈'],
+    ["Sariyog' va margarin", '🧈'],
+    ['Quyultirilgan sut', '🥛'],
+    // personal care
+    ['Shampun', '🧴'],
+    ['Шампунь', '🧴'],
+    ['Dezodorant', '🧴'],
+    ['Дезодорант', '🧴'],
+    ['Tana parvarishi (krem)', '🧴'],
+    ["Soch bo'yog'i", '🎨'],
+    ['Краска для волос', '🎨'],
+    ['Soqol olish (britva)', '🪒'],
+    ['Ustara', '🪒'],
+    ['Бритвы', '🪒'],
+    ['Sovun', '🧼'],
+    ['Мыло', '🧼'],
+    ['Tish pastasi', '🪥'],
+    ['Зубная паста', '🪥'],
+    // household
+    ['Kir yuvish kukuni', '🧴'],
+    ['Стиральный порошок', '🧴'],
+    ['Idish yuvish vositasi', '🧽'],
+    ['Средство для посуды', '🧽'],
+    ["Salfetka va qog'oz", '🧻'],
+    ['Бумага', '🧻'],
+    ['Hasharotlarga qarshi (dixlofos)', '🦟'],
+  ]
+  it.each(cases)('%s -> %s', (name, emoji) => {
+    expect(resolveCategoryIcon(name)).toBe(emoji)
+  })
+
+  it('none of the extra categories fall back to the default icon', () => {
+    for (const [name] of cases) {
+      expect(resolveCategoryIcon(name)).not.toBe(DEFAULT_CATEGORY_ICON)
+    }
+  })
+})
+
+describe('ordering traps in the extra catalogue', () => {
+  it('razor (ustara/britva/soqol) wins over the "yog\'" oil substring', () => {
+    // "Soqol olish vositalari" etc. must hit 🪒, never the butter/oil 🧈.
+    expect(resolveCategoryIcon('Soqol olish vositasi')).toBe('🪒')
+    expect(resolveCategoryIcon('Ustara va britvalar')).toBe('🪒')
+  })
+  it('hair dye still wins over "yog\'" (regression)', () => {
+    expect(resolveCategoryIcon("Soch bo'yog'i")).toBe('🎨')
+  })
+  it('dish-washing wins over the generic cleaning rule', () => {
+    expect(resolveCategoryIcon('Idish yuvish vositasi')).toBe('🧽')
+  })
+  it('popcorn (makka) and pasta (makaron) do not collide', () => {
+    expect(resolveCategoryIcon("Makkajo'xori (popcorn)")).toBe('🍿')
+    expect(resolveCategoryIcon('Makaron mahsulotlari')).toBe('🍝')
+  })
+})
+
 describe('default fallback (never a wrong icon)', () => {
   it('unknown names get the neutral default', () => {
     expect(resolveCategoryIcon('Nimadir tushunarsiz')).toBe(DEFAULT_CATEGORY_ICON)
