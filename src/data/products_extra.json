@@ -1,0 +1,1519 @@
+{
+  "categories": [
+    "Chips va snek",
+    "Choy",
+    "Dezodorant",
+    "Don va dukkaklilar",
+    "Hasharotga qarshi",
+    "Idish yuvish vositalari",
+    "Kir yuvish vositalari",
+    "Kofe",
+    "Konfet",
+    "Konserva",
+    "Makaron",
+    "Mayonez va souslar",
+    "Pechenye va vafli",
+    "Popcorn (makkajo'xori)",
+    "Quyultirilgan sut",
+    "Salfetka va qog'oz",
+    "Saqich",
+    "Sariyog' va margarin",
+    "Shakar va shirinlik",
+    "Shampun",
+    "Shokolad",
+    "Soch bo'yog'i",
+    "Soqol olish vositalari",
+    "Sovun",
+    "Tana parvarishi",
+    "Tez tayyor lapsha",
+    "Tish pastasi",
+    "Tozalash vositalari",
+    "Ustara (britva)",
+    "Yog'lar",
+    "Yormalar va sut"
+  ],
+  "products": [
+    {
+      "name": "7 Utra Kichkina",
+      "price": 15000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "7 Utra Kotta",
+      "price": 30000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Bon Debut Kichkina",
+      "price": 25000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Bon Debut Kotta",
+      "price": 55000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Shedroe Leto 200Gr",
+      "price": 12000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Shedroe Leto 250Gr",
+      "price": 15000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "K Chayu Sariq",
+      "price": 9000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "K Chayu Qora",
+      "price": 10000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Margarin Mechta",
+      "price": 9000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Margarin Olmos",
+      "price": 9000,
+      "category": "Sariyog' va margarin",
+      "unit": "dona"
+    },
+    {
+      "name": "Skickers Kichkina",
+      "price": 10000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Skickers Kotta",
+      "price": 15000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Bounty Kichkina(2X)",
+      "price": 10000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Bounty Kotta(3X)",
+      "price": 15000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Twiks Kichkina",
+      "price": 10000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Twiks Kotta",
+      "price": 15000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Mars Kichkina",
+      "price": 10000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Mars Kotta",
+      "price": 15000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Strobar",
+      "price": 7000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "M&Ms",
+      "price": 12000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Kit Kat",
+      "price": 12000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Alem",
+      "price": 5000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Alpen Gold",
+      "price": 17000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Nestle",
+      "price": 17000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Millennium Poristi",
+      "price": 25000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Millennium Karopka",
+      "price": 33000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Bucheron",
+      "price": 30000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Millennium 80%",
+      "price": 32000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Millennium 74%",
+      "price": 32000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Millennium 99%",
+      "price": 32000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Alpen Gold Max Fun",
+      "price": 28000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Pobeda Poristi",
+      "price": 12000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Alyonka",
+      "price": 30000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Qozoqston",
+      "price": 30000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Pobeda 36% Milk",
+      "price": 23000,
+      "category": "Shokolad",
+      "unit": "dona"
+    },
+    {
+      "name": "Kango",
+      "price": 2000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Zizi",
+      "price": 2000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Orbit",
+      "price": 6000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Mentos",
+      "price": 8000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Fife",
+      "price": 12000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Trident",
+      "price": 12000,
+      "category": "Saqich",
+      "unit": "dona"
+    },
+    {
+      "name": "Lays 20Gr",
+      "price": 5000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Lays 37Gr",
+      "price": 8000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Lays 110Gr",
+      "price": 15000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Lays 170Gr",
+      "price": 22000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Lays 225Gr",
+      "price": 27000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Cheers 70Gr",
+      "price": 9000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Cheers 140Gr",
+      "price": 14000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Cheers 210Gr",
+      "price": 19000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Grenki 27Gr",
+      "price": 3000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Grenki 60Gr",
+      "price": 6000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Grenki 100Gr",
+      "price": 8000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Grenki 180Gr",
+      "price": 13000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Flint 27Gr",
+      "price": 3000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Flint 60Gr",
+      "price": 6000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Flint 100Gr",
+      "price": 8000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Flint 190Gr",
+      "price": 13000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Pop Corn Izi",
+      "price": 10000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Hroom Solomka",
+      "price": 10000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Hroom Sushka",
+      "price": 8000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Xrust Team 27Gr",
+      "price": 3000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Xrust Team 60Gr",
+      "price": 6000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Xrust Team 100Gr",
+      "price": 8000,
+      "category": "Chips va snek",
+      "unit": "dona"
+    },
+    {
+      "name": "Aprel Soda 250Gr",
+      "price": 5000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Aprel Soda 900Gr",
+      "price": 15000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Aprel Soda 1800Gr",
+      "price": 28000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Mif Avtomat",
+      "price": 20000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Rakhsha",
+      "price": 12000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Aprel Idishli",
+      "price": 15000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Soda Pishevaya",
+      "price": 10000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Kir Sovun",
+      "price": 6000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Palmolive Kichkina",
+      "price": 11000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Palmolive Kotta",
+      "price": 15000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Silk",
+      "price": 10000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Royal",
+      "price": 10000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Eva",
+      "price": 10000,
+      "category": "Sovun",
+      "unit": "dona"
+    },
+    {
+      "name": "Kafolat 250Ml",
+      "price": 7000,
+      "category": "Idish yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Kafolat 350Ml",
+      "price": 9000,
+      "category": "Idish yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Kafolat Chelak",
+      "price": 20000,
+      "category": "Idish yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Fairy",
+      "price": 25000,
+      "category": "Idish yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Kapsula Ariel",
+      "price": 5000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Kapsula Shaxue",
+      "price": 3000,
+      "category": "Kir yuvish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Colgate Kichkina",
+      "price": 12000,
+      "category": "Tish pastasi",
+      "unit": "dona"
+    },
+    {
+      "name": "Colgate Ortacha",
+      "price": 17000,
+      "category": "Tish pastasi",
+      "unit": "dona"
+    },
+    {
+      "name": "Colgate Kotta",
+      "price": 20000,
+      "category": "Tish pastasi",
+      "unit": "dona"
+    },
+    {
+      "name": "Lesnoy Balzam",
+      "price": 20000,
+      "category": "Tish pastasi",
+      "unit": "dona"
+    },
+    {
+      "name": "Belizna",
+      "price": 10000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Bavi Kichkina",
+      "price": 12000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Bavi Kotta",
+      "price": 45000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Vanish Kichkina",
+      "price": 22000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Vanish Kotta",
+      "price": 35000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Clean Glass",
+      "price": 10000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Utyonok",
+      "price": 30000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Azelit",
+      "price": 33000,
+      "category": "Tozalash vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Boro Plyus",
+      "price": 12000,
+      "category": "Tana parvarishi",
+      "unit": "dona"
+    },
+    {
+      "name": "Vaseline",
+      "price": 10000,
+      "category": "Tana parvarishi",
+      "unit": "dona"
+    },
+    {
+      "name": "Nivea Men",
+      "price": 37000,
+      "category": "Dezodorant",
+      "unit": "dona"
+    },
+    {
+      "name": "Nivea Women",
+      "price": 37000,
+      "category": "Dezodorant",
+      "unit": "dona"
+    },
+    {
+      "name": "Nivea Sovun",
+      "price": 38000,
+      "category": "Dezodorant",
+      "unit": "dona"
+    },
+    {
+      "name": "Nivea Sharik",
+      "price": 40000,
+      "category": "Dezodorant",
+      "unit": "dona"
+    },
+    {
+      "name": "Arko (After Shave Cream)",
+      "price": 22000,
+      "category": "Soqol olish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Arko (Sensitive)",
+      "price": 16000,
+      "category": "Soqol olish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Arko (Foam)",
+      "price": 34000,
+      "category": "Soqol olish vositalari",
+      "unit": "dona"
+    },
+    {
+      "name": "Dixlofos(Guard)",
+      "price": 17000,
+      "category": "Hasharotga qarshi",
+      "unit": "dona"
+    },
+    {
+      "name": "Anti Lak",
+      "price": 10000,
+      "category": "Hasharotga qarshi",
+      "unit": "dona"
+    },
+    {
+      "name": "Head & Shoulders Kichkina",
+      "price": 35000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Head & Shoulders Kotta",
+      "price": 45000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Clear Kichkina",
+      "price": 32000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Clear Kotta",
+      "price": 40000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Palmolive",
+      "price": 37000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Elseve",
+      "price": 44000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Panten",
+      "price": 40000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Fructis",
+      "price": 35000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Chistaya Liniya Kichkina",
+      "price": 27000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Chistaya Liniya Kotta",
+      "price": 35000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Trichap",
+      "price": 55000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Omay Care",
+      "price": 35000,
+      "category": "Shampun",
+      "unit": "dona"
+    },
+    {
+      "name": "Xina Royal",
+      "price": 5000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Vatika",
+      "price": 8000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Prelest Lak",
+      "price": 35000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Ryabina",
+      "price": 24000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Palette",
+      "price": 27000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Eclair",
+      "price": 24000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Garnier",
+      "price": 30000,
+      "category": "Soch bo'yog'i",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Best 6",
+      "price": 16000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Premium 5",
+      "price": 15000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Start 4",
+      "price": 13000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Comfort 3",
+      "price": 12000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Silver 4",
+      "price": 14000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Best 6",
+      "price": 15000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Medium 3",
+      "price": 7000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Blue 2",
+      "price": 6000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Econom",
+      "price": 5000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Fox 3",
+      "price": 8000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Formen Guard",
+      "price": 5000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Shaver",
+      "price": 15000,
+      "category": "Ustara (britva)",
+      "unit": "dona"
+    },
+    {
+      "name": "Nescafe Gold (47.5Gr)",
+      "price": 35000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Nescafe Gold (95Gr)",
+      "price": 55000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Nescafe Classic (47.5Gr)",
+      "price": 25000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Nescafe Classic (95Gr)",
+      "price": 40000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Monarch (47.5Gr)",
+      "price": 35000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Maccoffee Dona",
+      "price": 3000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Nescafe Dona",
+      "price": 3000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Tora Bika Dona",
+      "price": 4000,
+      "category": "Kofe",
+      "unit": "dona"
+    },
+    {
+      "name": "Frima",
+      "price": 45000,
+      "category": "Yormalar va sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Dave Slivka",
+      "price": 30000,
+      "category": "Yormalar va sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mannaya Krupa Kotta",
+      "price": 15000,
+      "category": "Yormalar va sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mannaya Krupa Kichkina",
+      "price": 9000,
+      "category": "Yormalar va sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Oyinchoqli Kukuruz",
+      "price": 8000,
+      "category": "Popcorn (makkajo'xori)",
+      "unit": "dona"
+    },
+    {
+      "name": "Gulli Kukuruz Kichkina",
+      "price": 8000,
+      "category": "Popcorn (makkajo'xori)",
+      "unit": "dona"
+    },
+    {
+      "name": "Gulli Kukuruz Kotta",
+      "price": 12000,
+      "category": "Popcorn (makkajo'xori)",
+      "unit": "dona"
+    },
+    {
+      "name": "Sultan",
+      "price": 10000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Tashkent",
+      "price": 12000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Toza(95) Kok Choy",
+      "price": 8000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Toza(110) Kok Choy",
+      "price": 8000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Veston",
+      "price": 10000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Champion",
+      "price": 14000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Tudor",
+      "price": 23000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Tess",
+      "price": 18000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Toza(1 Kg Pachkali)",
+      "price": 25000,
+      "category": "Choy",
+      "unit": "kg"
+    },
+    {
+      "name": "Tudor Donali",
+      "price": 1000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Bayce Donali",
+      "price": 1000,
+      "category": "Choy",
+      "unit": "dona"
+    },
+    {
+      "name": "Doshirak",
+      "price": 10000,
+      "category": "Tez tayyor lapsha",
+      "unit": "dona"
+    },
+    {
+      "name": "Ramyon",
+      "price": 15000,
+      "category": "Tez tayyor lapsha",
+      "unit": "dona"
+    },
+    {
+      "name": "Big Bon",
+      "price": 5000,
+      "category": "Tez tayyor lapsha",
+      "unit": "dona"
+    },
+    {
+      "name": "Hot Lanch",
+      "price": 5000,
+      "category": "Tez tayyor lapsha",
+      "unit": "dona"
+    },
+    {
+      "name": "Rolton",
+      "price": 3000,
+      "category": "Tez tayyor lapsha",
+      "unit": "dona"
+    },
+    {
+      "name": "Rulon (Salman)",
+      "price": 15000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "Baraka",
+      "price": 12000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "777",
+      "price": 10000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "Jasmin",
+      "price": 18000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "Moon",
+      "price": 15000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "Donali",
+      "price": 2000,
+      "category": "Salfetka va qog'oz",
+      "unit": "dona"
+    },
+    {
+      "name": "Donya Pista 1L",
+      "price": 25000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Zateya Pista 1L",
+      "price": 28000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Lazzat Paxta 1L",
+      "price": 25000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Xozyayka 0.5L",
+      "price": 15000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Elena 5L",
+      "price": 120000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Zateya 5L",
+      "price": 140000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Zlato 2L",
+      "price": 50000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Zlato 3L",
+      "price": 75000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Zolotaya Korona Paxta 5L",
+      "price": 100000,
+      "category": "Yog'lar",
+      "unit": "dona"
+    },
+    {
+      "name": "Ittifoq Kichkina",
+      "price": 18000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Ittifoq Kotta",
+      "price": 33000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Kilka",
+      "price": 18000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Riga Gold",
+      "price": 37000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Qazi",
+      "price": 47000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Tushonka Xalol",
+      "price": 50000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Adjika Kichkina",
+      "price": 10000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Maxeev Djem",
+      "price": 35000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Ananas Lomdo",
+      "price": 30000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Ananas Slice",
+      "price": 23000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Chococream 250Gr",
+      "price": 25000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Chococream 400Gr",
+      "price": 40000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Chocotella Kichkina",
+      "price": 28000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Chocotella Kotta",
+      "price": 36000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Maxeev Chelak",
+      "price": 35000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Maxeev Siqma 400Gr",
+      "price": 25000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Maxeev Siqma 250Gr",
+      "price": 15000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Milter Siqma",
+      "price": 10000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Monarx Kotta",
+      "price": 18000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Monarx Kichkina",
+      "price": 9000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Monarx Kotta",
+      "price": 16000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Monarx Kichkina",
+      "price": 8000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Tanxo",
+      "price": 15000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Chili",
+      "price": 10000,
+      "category": "Mayonez va souslar",
+      "unit": "dona"
+    },
+    {
+      "name": "Gorox",
+      "price": 11000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Makka",
+      "price": 11000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Soya",
+      "price": 12000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Uksus",
+      "price": 12000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Uksus (Yabloko)",
+      "price": 9000,
+      "category": "Konserva",
+      "unit": "dona"
+    },
+    {
+      "name": "Ugra",
+      "price": 4000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Makiz Mampar",
+      "price": 13000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Makiz Spagetti",
+      "price": 10000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Makiz 700Gr",
+      "price": 17000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Talibjan",
+      "price": 13000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Lapsha",
+      "price": 7000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Jayma",
+      "price": 16000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Mampar Arzon",
+      "price": 5000,
+      "category": "Makaron",
+      "unit": "dona"
+    },
+    {
+      "name": "Mosh 1Kg",
+      "price": 20000,
+      "category": "Don va dukkaklilar",
+      "unit": "kg"
+    },
+    {
+      "name": "Garox 1Kg",
+      "price": 12000,
+      "category": "Don va dukkaklilar",
+      "unit": "kg"
+    },
+    {
+      "name": "Noxot 1Kg",
+      "price": 30000,
+      "category": "Don va dukkaklilar",
+      "unit": "kg"
+    },
+    {
+      "name": "Oqqand 1Kg",
+      "price": 16000,
+      "category": "Shakar va shirinlik",
+      "unit": "kg"
+    },
+    {
+      "name": "Shakar 1Kg",
+      "price": 15000,
+      "category": "Shakar va shirinlik",
+      "unit": "kg"
+    },
+    {
+      "name": "Novot 1Kg",
+      "price": 22000,
+      "category": "Shakar va shirinlik",
+      "unit": "kg"
+    },
+    {
+      "name": "Novot Chopli 1Kg",
+      "price": 25000,
+      "category": "Shakar va shirinlik",
+      "unit": "kg"
+    },
+    {
+      "name": "Mari Konserva",
+      "price": 15000,
+      "category": "Quyultirilgan sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mari Konserva Qora",
+      "price": 16000,
+      "category": "Quyultirilgan sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mari Baklashka 250Gr",
+      "price": 15000,
+      "category": "Quyultirilgan sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mari Baklashka 480Gr",
+      "price": 18000,
+      "category": "Quyultirilgan sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Mari Baklashka 1000Gr",
+      "price": 30000,
+      "category": "Quyultirilgan sut",
+      "unit": "dona"
+    },
+    {
+      "name": "Lochira 1Kg",
+      "price": 35000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Shokolad Palochka 1Kg",
+      "price": 35000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Oreo 1Kg",
+      "price": 35000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Vafli Dave 1Kg",
+      "price": 35000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Vafli Mayda 1Kg",
+      "price": 40000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Madagaskar 1Kg",
+      "price": 30000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Sutli 1Kg",
+      "price": 25000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Yubileyni 1Kg",
+      "price": 25000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Toplyoni 1Kg",
+      "price": 25000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Miller 1Kg",
+      "price": 60000,
+      "category": "Pechenye va vafli",
+      "unit": "kg"
+    },
+    {
+      "name": "Bruni",
+      "price": 60000,
+      "category": "Pechenye va vafli",
+      "unit": "dona"
+    },
+    {
+      "name": "Ole",
+      "price": 50000,
+      "category": "Pechenye va vafli",
+      "unit": "dona"
+    },
+    {
+      "name": "Chocalo",
+      "price": 50000,
+      "category": "Pechenye va vafli",
+      "unit": "dona"
+    },
+    {
+      "name": "Sitrus",
+      "price": 55000,
+      "category": "Konfet",
+      "unit": "dona"
+    },
+    {
+      "name": "Yogurt",
+      "price": 60000,
+      "category": "Konfet",
+      "unit": "dona"
+    },
+    {
+      "name": "Barbaris",
+      "price": 60000,
+      "category": "Konfet",
+      "unit": "dona"
+    }
+  ]
+}
