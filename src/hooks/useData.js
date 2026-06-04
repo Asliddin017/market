@@ -5,6 +5,7 @@ import { slugify, toTitleCase } from '../lib/utils'
 import { resolveCategoryIcon } from '../lib/categoryIcons'
 import { isStaff, visibleCategories } from '../lib/visibility'
 import { normalizePhone } from '../lib/phone'
+import { deleteProductImage } from '../lib/storage'
 
 // ---------------------------------------------------------------------------
 // Data access layer (Supabase).
@@ -590,8 +591,16 @@ export async function saveProduct(product) {
 }
 
 export async function deleteProduct(id) {
+  // Grab the image URL first so we can clean its Storage file up afterwards.
+  const { data: row } = await supabase
+    .from('products')
+    .select('image_url')
+    .eq('id', id)
+    .maybeSingle()
   const { error } = await supabase.from('products').delete().eq('id', id)
   if (error) throw error
+  // Best-effort Storage cleanup (no-op for legacy base64 / null urls).
+  if (row?.image_url) deleteProductImage(row.image_url)
 }
 
 /** Price-change history for a product (newest first). */

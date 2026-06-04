@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UNITS } from '../lib/constants'
 import { saveProduct } from '../hooks/useData'
-import { fileToDataUrl } from '../lib/utils'
+import { uploadProductImage, deleteProductImage } from '../lib/storage'
 import PriceHistory from './PriceHistory'
 
 const EMPTY = { name: '', categoryId: '', price: '', unit: 'dona', image: null }
@@ -10,16 +10,31 @@ const EMPTY = { name: '', categoryId: '', price: '', unit: 'dona', image: null }
 /**
  * Modal form for creating / editing a product. Image is optional — saving
  * without one is always allowed.
+ *
+ * Images go to Supabase Storage (the "product-images" bucket), not the DB: on
+ * pick we compress + upload immediately and keep only the public URL in
+ * `form.image`. We track the image the form opened with (`originalImageRef`) so
+ * a successful replace/remove deletes the old file, and the freshly-uploaded
+ * URL (`freshUploadRef`) so cancelling cleans up the orphan it would leave.
  */
 export default function ProductForm({ open, onClose, product, categories }) {
   const [form, setForm] = useState(EMPTY)
   const [busy, setBusy] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
+
+  // Image the form opened with (to delete after a successful replace/remove).
+  const originalImageRef = useRef(null)
+  // Most recent uploaded-but-not-yet-saved URL (orphan candidate on cancel).
+  const freshUploadRef = useRef(null)
 
   useEffect(() => {
     if (open) {
       setForm(product ? { ...product } : { ...EMPTY, categoryId: categories[0]?.id ?? '' })
       setError('')
+      setUploading(false)
+      originalImageRef.current = product?.image ?? null
+      freshUploadRef.current = null
     }
   }, [open, product, categories])
 
@@ -29,13 +44,42 @@ export default function ProductForm({ open, onClose, product, categories }) {
 
   async function handleImage(e) {
     const file = e.target.files?.[0]
+    e.target.value = '' // let the user re-pick the same file after a remove
     if (!file) return
+    setError('')
+    setUploading(true)
     try {
-      const dataUrl = await fileToDataUrl(file)
-      set('image', dataUrl)
-    } catch {
-      setError("Rasmni yuklab bo'lmadi.")
+      const url = await uploadProductImage(file, { productId: product?.id })
+      // A previous fresh (uncommitted) upload is now superseded — drop it.
+      if (freshUploadRef.current && freshUploadRef.current !== originalImageRef.current) {
+        deleteProductImage(freshUploadRef.current)
+      }
+      freshUploadRef.current = url
+      set('image', url)
+    } catch (err) {
+      console.error('[product-form] image upload failed:', err)
+      setError("Rasmni yuklab bo'lmadi. Qaytadan urinib ko'ring.")
+    } finally {
+      setUploading(false)
     }
+  }
+
+  function removeImage() {
+    // If the shown image is a fresh (uncommitted) upload, delete it right away.
+    if (freshUploadRef.current && form.image === freshUploadRef.current) {
+      deleteProductImage(freshUploadRef.current)
+      freshUploadRef.current = null
+    }
+    set('image', null)
+  }
+
+  // Closing without saving: clean up any orphan upload we created this session.
+  function handleClose() {
+    if (freshUploadRef.current && freshUploadRef.current !== originalImageRef.current) {
+      deleteProductImage(freshUploadRef.current)
+    }
+    freshUploadRef.current = null
+    onClose()
   }
 
   async function handleSubmit(e) {
@@ -45,6 +89,10 @@ export default function ProductForm({ open, onClose, product, categories }) {
     setBusy(true)
     try {
       await saveProduct(form)
+      // Saved OK: if the original image was replaced or removed, delete it.
+      const original = originalImageRef.current
+      if (original && original !== form.image) deleteProductImage(original)
+      freshUploadRef.current = null
       onClose()
     } catch (err) {
       console.error('[product-form] save failed:', err)
@@ -63,7 +111,7 @@ export default function ProductForm({ open, onClose, product, categories }) {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={handleClose} />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 30 }}
@@ -132,15 +180,31 @@ export default function ProductForm({ open, onClose, product, categories }) {
                     type="file"
                     accept="image/*"
                     onChange={handleImage}
-                    className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/20 file:px-3 file:py-2 file:text-brand-200 hover:file:bg-brand-500/30"
+                    disabled={uploading}
+                    className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/20 file:px-3 file:py-2 file:text-brand-200 hover:file:bg-brand-500/30 disabled:opacity-50"
                   />
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    Telefonda kamera ham ochiladi · rasm yuklashdan oldin avtomatik siqiladi
+                  </p>
                 </div>
               </div>
 
-              {form.image && (
+              {uploading && (
+                <div className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2 text-xs text-slate-300">
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+                  Rasm yuklanmoqda…
+                </div>
+              )}
+
+              {!uploading && form.image && (
                 <div className="flex items-center gap-3">
-                  <img src={form.image} alt="" className="h-16 w-16 rounded-xl object-cover" />
-                  <button type="button" onClick={() => set('image', null)} className="btn-ghost px-3 py-1.5 text-xs">
+                  <img
+                    src={form.image}
+                    alt=""
+                    loading="lazy"
+                    className="h-16 w-16 rounded-xl object-cover"
+                  />
+                  <button type="button" onClick={removeImage} className="btn-ghost px-3 py-1.5 text-xs">
                     Rasmni olib tashlash
                   </button>
                 </div>
@@ -151,9 +215,9 @@ export default function ProductForm({ open, onClose, product, categories }) {
               {product?.id && <PriceHistory productId={product.id} />}
 
               <div className="flex justify-end gap-2 pt-2">
-                <button type="button" onClick={onClose} className="btn-ghost">Bekor qilish</button>
-                <button type="submit" disabled={busy} className="btn-primary">
-                  {busy ? 'Saqlanmoqda…' : 'Saqlash'}
+                <button type="button" onClick={handleClose} className="btn-ghost">Bekor qilish</button>
+                <button type="submit" disabled={busy || uploading} className="btn-primary">
+                  {busy ? 'Saqlanmoqda…' : uploading ? 'Rasm yuklanmoqda…' : 'Saqlash'}
                 </button>
               </div>
             </form>

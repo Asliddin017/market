@@ -175,6 +175,37 @@ harfdan qat'i nazar** moslashtiriladi.
 supabase db execute --file supabase/piece_pricing.sql
 ```
 
+### 4.3) Mahsulot rasmlari uchun Storage (`product-images`)
+Mahsulot rasmlari **Supabase Storage** dagi ommaviy (public) `product-images`
+bucket'ida saqlanadi (bazada base64 emas — katalog tez qoladi). DB'da faqat
+rasmning **public URL** i (`products.image_url`) turadi. `supabase/storage.sql`
+bucket'ni va RLS siyosatlarini yaratadi:
+- **public read** — hamma rasmni ko'ra oladi (token shart emas);
+- **insert/update/delete** — faqat **admin & sotuvchi** (mavjud
+  `current_app_role()` helperi orqali, products/categories'dagi bilan bir xil
+  qoida). Mijoz rasm yuklay/almashtira/o'chira olmaydi.
+
+To'liq idempotent (bucket guarded-insert, `drop policy if exists`).
+
+1. Supabase Dashboard → **SQL** → **New query**.
+2. `supabase/storage.sql` ning butun mazmunini nusxalab joylashtiring.
+3. **Run** bosing (`Success. No rows returned`).
+
+```bash
+# Yoki CLI bilan:
+supabase db execute --file supabase/storage.sql
+```
+
+> Muqobil (Dashboard'dan qo'lda): **Storage → New bucket** → nomi
+> `product-images`, **Public bucket** ni yoqing → **Create**. So'ng yuqoridagi
+> `storage.objects` siyosatlarini (public read + admin/seller yozish) **SQL
+> Editor** orqali qo'shing — Dashboard'ning Policies bo'limida ham bo'ladi.
+
+> ℹ️ Rasm yuklash brauzerda **siqiladi/kichraytiriladi** (uzun tomoni ~800px,
+> JPEG) — sekin telefon internetida ham tez yuklanadi. Rasm **ixtiyoriy**:
+> mahsulot rasmsiz ham saqlanadi. Rasmni almashtirsangiz eskisi Storage'dan
+> o'chiriladi; mahsulot o'chirilsa rasmi ham tozalanadi.
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda
@@ -311,7 +342,8 @@ npm run preview   # build natijasini ko'rish
 supabase/
 ├── schema.sql              # Jadvallar + RLS siyosatlari + triggerlar (SQL editorda ishga tushiring)
 ├── orders.sql              # Buyurtma tizimi: orders + order_items + RLS + triggerlar (schema.sql dan keyin)
-└── piece_pricing.sql       # Narx qoidalari (kg/dona) + sigaret dona narxi (orders.sql dan keyin)
+├── piece_pricing.sql       # Narx qoidalari (kg/dona) + sigaret dona narxi (orders.sql dan keyin)
+└── storage.sql             # "product-images" bucket + RLS (public read; admin/seller yozadi)
 scripts/
 ├── seed.js                 # 194 mahsulotni Supabase ga import (service_role, idempotent; --clean = reseed)
 └── import-extra.js         # products_extra.json ni MERGE (additive, idempotent; mavjudga tegmaydi)
@@ -328,6 +360,7 @@ src/
 │   └── uiStore.js          # Faol fon mavzusi
 ├── lib/
 │   ├── supabase.js         # Supabase klient (env vars)
+│   ├── storage.js          # Mahsulot rasmlari: siqish + Storage upload/delete (public URL)
 │   ├── account.js          # username ↔ sintetik email
 │   ├── constants.js        # UNITS, kategoriya emoji xaritasi
 │   ├── roles.js            # Rollar + ruxsatlar matritsasi (can())

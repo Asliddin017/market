@@ -1,16 +1,28 @@
+import { useEffect, useState } from 'react'
 import { hueFromString } from '../lib/utils'
 
 /**
  * Renders a product image, or a clean tinted placeholder (with the category
- * icon) when no image was uploaded.
+ * icon) when no image was uploaded. If a stored image URL fails to load
+ * (deleted file, offline), we fall back to the same placeholder instead of
+ * showing a broken-image icon. Images are lazy-loaded so long lists stay fast.
  */
 export default function ProductImage({ product, categoryIcon = '📦', className = '' }) {
-  if (product.image) {
+  const [failed, setFailed] = useState(false)
+
+  // Reset the error flag when the source changes (e.g. image replaced/removed).
+  useEffect(() => {
+    setFailed(false)
+  }, [product.image])
+
+  if (product.image && !failed) {
     return (
       <img
         src={product.image}
         alt={product.name}
         loading="lazy"
+        decoding="async"
+        onError={() => setFailed(true)}
         className={`h-full w-full object-cover ${className}`}
       />
     )

@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { UNITS } from '../lib/constants'
 import { saveProduct } from '../hooks/useData'
-import { fileToDataUrl, formatSom } from '../lib/utils'
+import { uploadProductImage, deleteProductImage } from '../lib/storage'
+import { formatSom } from '../lib/utils'
 
 // ---------------------------------------------------------------------------
 // "Add many products into ONE locked category" mode (admin / seller).
@@ -19,8 +20,11 @@ export default function QuickAddProducts({ category, onClose }) {
   const [form, setForm] = useState(() => emptyForm())
   const [added, setAdded] = useState([]) // session list (most recent first)
   const [busy, setBusy] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const nameRef = useRef(null)
+  // Uploaded-but-not-yet-saved image URL (orphan candidate on remove/close).
+  const freshUploadRef = useRef(null)
 
   // Focus the name field on open.
   useEffect(() => {
@@ -33,12 +37,36 @@ export default function QuickAddProducts({ category, onClose }) {
 
   async function handleImage(e) {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
+    setError('')
+    setUploading(true)
     try {
-      set('image', await fileToDataUrl(file))
-    } catch {
-      setError("Rasmni yuklab bo'lmadi.")
+      const url = await uploadProductImage(file, { productId: null })
+      if (freshUploadRef.current) deleteProductImage(freshUploadRef.current) // drop superseded orphan
+      freshUploadRef.current = url
+      set('image', url)
+    } catch (err) {
+      console.error('[quick-add] image upload failed:', err)
+      setError("Rasmni yuklab bo'lmadi. Qaytadan urinib ko'ring.")
+    } finally {
+      setUploading(false)
     }
+  }
+
+  function removeImage() {
+    if (freshUploadRef.current && form.image === freshUploadRef.current) {
+      deleteProductImage(freshUploadRef.current)
+      freshUploadRef.current = null
+    }
+    set('image', null)
+  }
+
+  // Closing: clean up an image uploaded for an item that was never saved.
+  function handleClose() {
+    if (freshUploadRef.current) deleteProductImage(freshUploadRef.current)
+    freshUploadRef.current = null
+    onClose()
   }
 
   async function handleSubmit(e) {
@@ -51,6 +79,7 @@ export default function QuickAddProducts({ category, onClose }) {
     setBusy(true)
     try {
       await saveProduct({ ...form, categoryId: category.id })
+      freshUploadRef.current = null // committed to the saved product now
       // Record in the session list (price/unit snapshot for display).
       setAdded((list) => [
         { name: form.name.trim(), price: Number(form.price) || 0, unit: form.unit },
@@ -75,7 +104,7 @@ export default function QuickAddProducts({ category, onClose }) {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={onClose} />
+        <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={handleClose} />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 24 }}
@@ -96,7 +125,7 @@ export default function QuickAddProducts({ category, onClose }) {
                 </span>
               </h2>
             </div>
-            <button onClick={onClose} className="btn-primary shrink-0 px-3 py-2 text-xs">
+            <button onClick={handleClose} className="btn-primary shrink-0 px-3 py-2 text-xs">
               ✓ Tugatish
             </button>
           </div>
@@ -151,12 +180,19 @@ export default function QuickAddProducts({ category, onClose }) {
                   type="file"
                   accept="image/*"
                   onChange={handleImage}
-                  className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/20 file:px-3 file:py-2 file:text-brand-200 hover:file:bg-brand-500/30"
+                  disabled={uploading}
+                  className="block w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-500/20 file:px-3 file:py-2 file:text-brand-200 hover:file:bg-brand-500/30 disabled:opacity-50"
                 />
-                {form.image && (
+                {uploading && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-slate-300">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" />
+                    Rasm yuklanmoqda…
+                  </div>
+                )}
+                {!uploading && form.image && (
                   <div className="mt-2 flex items-center gap-3">
-                    <img src={form.image} alt="" className="h-14 w-14 rounded-xl object-cover" />
-                    <button type="button" onClick={() => set('image', null)} className="btn-ghost px-3 py-1.5 text-xs">
+                    <img src={form.image} alt="" loading="lazy" className="h-14 w-14 rounded-xl object-cover" />
+                    <button type="button" onClick={removeImage} className="btn-ghost px-3 py-1.5 text-xs">
                       Olib tashlash
                     </button>
                   </div>
@@ -165,8 +201,8 @@ export default function QuickAddProducts({ category, onClose }) {
 
               {error && <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-xs text-rose-300">{error}</p>}
 
-              <button type="submit" disabled={busy} className="btn-primary w-full">
-                {busy ? 'Saqlanmoqda…' : '➕ Saqlash va keyingisi'}
+              <button type="submit" disabled={busy || uploading} className="btn-primary w-full">
+                {busy ? 'Saqlanmoqda…' : uploading ? 'Rasm yuklanmoqda…' : '➕ Saqlash va keyingisi'}
               </button>
               <p className="text-center text-xs text-slate-500">
                 Saqlangach forma tozalanadi va kursor nom maydoniga qaytadi.
