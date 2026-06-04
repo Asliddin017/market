@@ -9,6 +9,7 @@ import CategoryBackground from './components/CategoryBackground'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Products from './pages/Products'
+import BulkImages from './pages/BulkImages'
 import Categories from './pages/Categories'
 import CartPage from './pages/CartPage'
 import Orders from './pages/Orders'
@@ -80,6 +81,10 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
+            <Route
+              path="/rasm-qoshish"
+              element={can(role, 'manageProducts') ? <BulkImages /> : <Forbidden />}
+            />
             <Route path="/categories" element={<Categories />} />
             <Route
               path="/cart"

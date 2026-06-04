@@ -590,6 +590,16 @@ export async function saveProduct(product) {
   return data.id
 }
 
+/** Set (or clear) only a product's image URL — used by the bulk-image mode so a
+ *  fast photo pass doesn't resend name/price/unit (and never touches history). */
+export async function setProductImage(id, imageUrl) {
+  const { error } = await supabase
+    .from('products')
+    .update({ image_url: imageUrl ?? null })
+    .eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteProduct(id) {
   // Grab the image URL first so we can clean its Storage file up afterwards.
   const { data: row } = await supabase

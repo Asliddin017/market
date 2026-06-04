@@ -15,6 +15,7 @@ export default function Navbar() {
   const links = [
     { to: '/', label: 'Bosh sahifa', icon: '🏠', show: true },
     { to: '/products', label: 'Mahsulotlar', icon: '📦', show: true },
+    { to: '/rasm-qoshish', label: 'Rasm qo\'shish', icon: '📸', show: can(role, 'manageProducts') },
     { to: '/categories', label: 'Kategoriyalar', icon: '🏷️', show: true },
     {
       to: '/orders',
