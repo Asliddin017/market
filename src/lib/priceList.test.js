@@ -7,8 +7,10 @@ import {
   sortLabel,
   priceOf,
   nameOf,
+  baseName,
   sortByPrice,
   sortByName,
+  sortByPriceGrouped,
   sortProducts,
   formatPriceListRow,
   buildPriceListGroups,
@@ -230,6 +232,107 @@ describe('SORT_OPTIONS / sortLabel', () => {
   })
   it('falls back to the default label for unknown values', () => {
     expect(sortLabel('nope')).toBe(sortLabel(DEFAULT_SORT))
+  })
+})
+
+describe('baseName — strips size/package qualifiers', () => {
+  it('strips trailing Cyrillic size words', () => {
+    expect(baseName('Флэш Котта')).toBe('Флэш')
+    expect(baseName('Флэш Ортача')).toBe('Флэш')
+    expect(baseName('Флэш Кичкина')).toBe('Флэш')
+    expect(baseName('Редбулл Котта')).toBe('Редбулл')
+  })
+  it('keeps a leading "18+" while stripping the size word', () => {
+    expect(baseName('18+ Котта')).toBe('18+')
+    expect(baseName('18+ Кичкина')).toBe('18+')
+  })
+  it('strips parenthetical package/volume tags but keeps the real name', () => {
+    expect(baseName('Кока кола (Banka)')).toBe('Кока кола')
+    expect(baseName('Suv (baklashka)')).toBe('Suv')
+    expect(baseName('Fanta (butulka)')).toBe('Fanta')
+    expect(baseName('Pepsi (0.5)')).toBe('Pepsi')
+  })
+  it('strips bare volume tokens', () => {
+    expect(baseName('Pepsi 0.33')).toBe('Pepsi')
+    expect(baseName('Sok 1.0')).toBe('Sok')
+  })
+  it('handles Latin size spellings too', () => {
+    expect(baseName('Flash Katta')).toBe('Flash')
+    expect(baseName('Flash Kichkina')).toBe('Flash')
+  })
+  it('falls back to the full name when there is no qualifier', () => {
+    expect(baseName('Докторская колбаса')).toBe('Докторская колбаса')
+    expect(baseName('Snickers')).toBe('Snickers')
+  })
+  it('never strips down to nothing (qualifier-only name keeps itself)', () => {
+    expect(baseName('Котта')).toBe('Котта')
+  })
+  it('accepts a product object', () => {
+    expect(baseName({ name: '  Флэш Котта  ' })).toBe('Флэш')
+  })
+})
+
+describe('sortByPriceGrouped — variants stay consecutive', () => {
+  // Two products, three sizes each, prices interleaved so a pure price sort
+  // would scatter them.
+  const flash = [
+    { name: 'Флэш Котта', price: 12000 },
+    { name: 'Флэш Ортача', price: 8000 },
+    { name: 'Флэш Кичкина', price: 5000 },
+  ]
+  const redbull = [
+    { name: 'Редбулл Котта', price: 15000 },
+    { name: 'Редбулл Ортача', price: 10000 },
+    { name: 'Редбулл Кичкина', price: 6000 },
+  ]
+  const mixed = [flash[0], redbull[2], flash[2], redbull[0], flash[1], redbull[1]]
+
+  it('keeps each product\'s variants together, groups ordered by min price (ASC)', () => {
+    // Flash min 5000 < Redbull min 6000 → Flash group first; variants ascending.
+    expect(names(sortByPriceGrouped(mixed, PRICE_SORT.ASC))).toEqual([
+      'Флэш Кичкина', 'Флэш Ортача', 'Флэш Котта',
+      'Редбулл Кичкина', 'Редбулл Ортача', 'Редбулл Котта',
+    ])
+  })
+  it('keeps variants together, groups ordered by max price (DESC)', () => {
+    // Redbull max 15000 > Flash max 12000 → Redbull group first; variants descending.
+    expect(names(sortByPriceGrouped(mixed, PRICE_SORT.DESC))).toEqual([
+      'Редбулл Котта', 'Редбулл Ортача', 'Редбулл Кичкина',
+      'Флэш Котта', 'Флэш Ортача', 'Флэш Кичкина',
+    ])
+  })
+  it('parenthetical/size tags do not split a group', () => {
+    const list = [
+      { name: 'Кока кола (Banka)', price: 9000 },
+      { name: 'Suv', price: 3000 },
+      { name: 'Кока кола (0.5)', price: 7000 },
+      { name: 'Кока кола (1.0)', price: 11000 },
+    ]
+    // Cola group min = 7000 > Suv 3000 → Suv first, then the 3 colas consecutively.
+    expect(names(sortByPriceGrouped(list, PRICE_SORT.ASC))).toEqual([
+      'Suv',
+      'Кока кола (0.5)',
+      'Кока кола (Banka)',
+      'Кока кола (1.0)',
+    ])
+  })
+  it('single-variant products slot in by their own price', () => {
+    const list = [
+      { name: 'Флэш Котта', price: 12000 },
+      { name: 'Murabbo', price: 4000 },
+      { name: 'Флэш Кичкина', price: 5000 },
+    ]
+    // Flash min 5000 > Murabbo 4000 → Murabbo first, then both Flash sizes.
+    expect(names(sortByPriceGrouped(list, PRICE_SORT.ASC))).toEqual([
+      'Murabbo',
+      'Флэш Кичкина',
+      'Флэш Котта',
+    ])
+  })
+  it('does not mutate the input array', () => {
+    const before = [...mixed]
+    sortByPriceGrouped(mixed, PRICE_SORT.ASC)
+    expect(mixed).toEqual(before)
   })
 })
 

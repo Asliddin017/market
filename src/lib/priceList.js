@@ -3,7 +3,8 @@
 //
 // These shape the data that the PDF generator (priceListPdf.js) draws:
 //   * sort each category's products by the chosen order — BY PRICE (asc/desc,
-//     tie-break by name A→Z) or BY NAME (A→Z / Z→A, tie-break by price asc), and
+//     keeping a product's size/variants together, see sortByPriceGrouped) or BY
+//     NAME (A→Z / Z→A, tie-break by price asc), and
 //   * format each row's price label ("40 000 so'm", "/ kg" for scale goods).
 //
 // Kept separate from the jsPDF code so the sorting / formatting can be unit
@@ -93,10 +94,93 @@ export function sortByName(products = [], order = NAME_SORT.ASC) {
   })
 }
 
-/** Sort products by any SORT_OPTIONS value (price or name; defaults to price asc). */
+// ---- base-name / variant grouping ----------------------------------------
+//
+// Many products exist as several size/package variants ("Флэш Котта", "Флэш
+// Ортача", "Флэш Кичкина"). Sorting purely by price scatters them across the
+// list; instead we group variants by their BASE NAME (the product name without
+// the size/package qualifier) so they always print consecutively.
+
+// Size words stripped (with their Latin forms) when computing the base name.
+// Matched case-insensitively against whole whitespace tokens.
+const SIZE_WORDS = new Set([
+  'кичкина', 'ортача', 'котта', // Uzbek-Cyrillic: small / medium / large
+  'kichkina', 'ortacha', 'katta', 'kotta', // common Latin spellings
+])
+
+// A bare volume/quantity token, e.g. "0.5", "1,0", "0.33", "330ml", "1л", "5kg".
+const VOLUME_RE = /^\d+(?:[.,]\d+)?(?:л|l|мл|ml|кг|kg|гр|г|g)?$/i
+
+/** Is this whitespace token a size word or a bare volume token (→ stripped)? */
+function isQualifierToken(token) {
+  const t = String(token).toLocaleLowerCase()
+  return SIZE_WORDS.has(t) || VOLUME_RE.test(t)
+}
+
+/**
+ * The BASE name of a product (or raw name string) used to group variants:
+ *   "Флэш Котта"        → "Флэш"
+ *   "18+ Кичкина"       → "18+"
+ *   "Кока кола (Banka)" → "Кока кола"
+ *   "Pepsi 0.33"        → "Pepsi"
+ * Parenthetical tags "(…)" are removed entirely, then TRAILING size/volume
+ * qualifier tokens are stripped. A name with no recognisable qualifier keeps its
+ * full name (it forms a group of one). Never strips down to nothing.
+ */
+export function baseName(nameOrProduct) {
+  const raw = (typeof nameOrProduct === 'string' ? nameOrProduct : nameOf(nameOrProduct)).trim()
+  // Drop parenthetical tags: "(Banka)", "(baklashka)", "(0.5)".
+  const noParens = raw.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim()
+  const tokens = noParens.split(' ').filter(Boolean)
+  // Strip trailing qualifier tokens, but never remove the last remaining token.
+  while (tokens.length > 1 && isQualifierToken(tokens[tokens.length - 1])) tokens.pop()
+  return tokens.join(' ').trim() || raw
+}
+
+/** Normalised grouping key for a product's base name (case-insensitive). */
+function baseKey(product) {
+  return baseName(product).toLocaleLowerCase().replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Sort products BY PRICE while keeping each product's size/variants TOGETHER.
+ * Variants are bucketed by base name; within a bucket they're price-sorted in
+ * the chosen direction (name A→Z tie-break). The buckets themselves are ordered
+ * by their REPRESENTATIVE price — the bucket's min price for ASC, max for DESC
+ * (i.e. its leading variant) — with an A→Z base-name tie-break. So a single
+ * product slots in by its own price, and a multi-variant product stays
+ * consecutive, positioned by its cheapest (asc) / priciest (desc) variant. Pure.
+ */
+export function sortByPriceGrouped(products = [], order = PRICE_SORT.ASC) {
+  const dir = order === PRICE_SORT.DESC ? -1 : 1
+  const groups = new Map() // key -> { base, items }
+  for (const p of products) {
+    const key = baseKey(p)
+    if (!groups.has(key)) groups.set(key, { base: baseName(p), items: [] })
+    groups.get(key).items.push(p)
+  }
+  const ordered = [...groups.values()].map((g) => {
+    const items = sortByPrice(g.items, order)
+    const prices = items.map(priceOf)
+    const rep = dir === 1 ? Math.min(...prices) : Math.max(...prices)
+    return { ...g, items, rep }
+  })
+  ordered.sort((a, b) => {
+    const diff = a.rep - b.rep
+    if (diff !== 0) return dir * diff
+    return a.base.localeCompare(b.base, NAME_LOCALES, { sensitivity: 'base', numeric: true })
+  })
+  return ordered.flatMap((g) => g.items)
+}
+
+/**
+ * Sort products by any SORT_OPTIONS value (defaults to price asc). Price modes
+ * keep variants together (sortByPriceGrouped); name modes sort by full name, so
+ * variants are already adjacent via their shared prefix.
+ */
 export function sortProducts(products = [], sort = DEFAULT_SORT) {
   if (sort === NAME_SORT.ASC || sort === NAME_SORT.DESC) return sortByName(products, sort)
-  return sortByPrice(products, sort)
+  return sortByPriceGrouped(products, sort)
 }
 
 /**
