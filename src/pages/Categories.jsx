@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useCategories, useProducts, saveCategory, deleteCategory } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { can } from '../lib/roles'
+import { isStaff } from '../lib/visibility'
 import { searchCategories } from '../lib/search'
 import SearchBar from '../components/SearchBar'
 import ConfirmDialog from '../components/ConfirmDialog'
 import QuickAddProducts from '../components/QuickAddProducts'
+import PriceListExport from '../components/PriceListExport'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 import { formatDateTime } from '../lib/utils'
 import { resolveCategoryIcon } from '../lib/categoryIcons'
@@ -109,9 +111,12 @@ export default function Categories() {
             {canAddProducts && " · kartani bosing → o'sha kategoriyaga ketma-ket mahsulot qo'shing"}
           </p>
         </div>
-        {canManage && !editing && (
-          <button onClick={startNew} className="btn-primary">➕ Yangi kategoriya</button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {isStaff(role) && <PriceListExport products={products} categories={categories} />}
+          {canManage && !editing && (
+            <button onClick={startNew} className="btn-primary">➕ Yangi kategoriya</button>
+          )}
+        </div>
       </div>
 
       <SearchBar

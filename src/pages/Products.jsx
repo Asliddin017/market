@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
 import { useUiStore } from '../store/uiStore'
 import { can, ROLES } from '../lib/roles'
+import { isStaff } from '../lib/visibility'
 import { smartSearch } from '../lib/search'
 import { resolveThemeKey } from '../lib/categoryThemes'
 import SearchBar from '../components/SearchBar'
@@ -12,6 +13,7 @@ import ProductCard from '../components/ProductCard'
 import ProductForm from '../components/ProductForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import BackupControls from '../components/BackupControls'
+import PriceListExport from '../components/PriceListExport'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 
 // How many products to render at once. Keeps the DOM light even with thousands
@@ -116,7 +118,8 @@ export default function Products() {
           <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Mahsulotlar</h1>
           <p className="text-sm text-slate-400">{products.length} ta mahsulot · {categories.length} ta kategoriya</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {isStaff(role) && <PriceListExport products={products} categories={categories} />}
           {isAdmin && <BackupControls />}
           {canManage && (
             <button onClick={openCreate} className="btn-primary">➕ Yangi mahsulot</button>
