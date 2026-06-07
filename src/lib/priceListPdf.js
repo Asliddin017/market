@@ -18,7 +18,7 @@
 
 import { jsPDF } from 'jspdf'
 import { formatDateTime } from './utils'
-import { buildPriceListGroups, formatPriceListRow, PRICE_SORT } from './priceList'
+import { buildPriceListGroups, formatPriceListRow, sortLabel, DEFAULT_SORT } from './priceList'
 
 const FONT = {
   regular: { file: 'DejaVuSans.ttf', vfs: 'DejaVuSans.ttf', name: 'DejaVuSans', style: 'normal' },
@@ -84,7 +84,7 @@ export function priceListFileName(date = new Date()) {
  * @param {Array}    opts.products      role-visible products
  * @param {Array}    opts.categories    role-visible categories (defines order)
  * @param {Iterable} opts.selectedIds   category ids to include
- * @param {string}   opts.sortOrder     PRICE_SORT.ASC | PRICE_SORT.DESC
+ * @param {string}   opts.sortOrder     any SORT_OPTIONS value (price or name)
  * @param {Date}     [opts.generatedAt] timestamp shown in the header
  * @returns {Promise<{ fileName, categories, products }>} summary for a toast
  */
@@ -92,7 +92,7 @@ export async function generatePriceListPdf({
   products = [],
   categories = [],
   selectedIds,
-  sortOrder = PRICE_SORT.ASC,
+  sortOrder = DEFAULT_SORT,
   generatedAt = new Date(),
 } = {}) {
   const groups = buildPriceListGroups(products, categories, selectedIds, sortOrder)
@@ -120,8 +120,7 @@ export async function generatePriceListPdf({
 
     doc.setFontSize(9)
     doc.setTextColor(...COLORS.muted)
-    const order = sortOrder === PRICE_SORT.DESC ? 'qimmatdan arzonga' : 'arzondan qimmatga'
-    doc.text(`Narx bo'yicha: ${order}`, MARGIN.x, MARGIN.top + 12.5)
+    doc.text(`Saralash: ${sortLabel(sortOrder)}`, MARGIN.x, MARGIN.top + 12.5)
     doc.text(formatDateTime(generatedAt), right, MARGIN.top, { align: 'right' })
 
     // divider

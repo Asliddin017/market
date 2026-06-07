@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
   PRICE_SORT,
+  NAME_SORT,
+  SORT_OPTIONS,
+  DEFAULT_SORT,
+  sortLabel,
   priceOf,
+  nameOf,
   sortByPrice,
+  sortByName,
+  sortProducts,
   formatPriceListRow,
   buildPriceListGroups,
 } from './priceList'
@@ -100,6 +107,132 @@ describe('sortByPrice — purity', () => {
   })
 })
 
+describe('nameOf', () => {
+  it('trims and defaults to empty string', () => {
+    expect(nameOf({ name: '  Cola  ' })).toBe('Cola')
+    expect(nameOf({})).toBe('')
+    expect(nameOf(null)).toBe('')
+  })
+})
+
+describe('sortByName — A→Z (default) and Z→A', () => {
+  it('orders names A→Z by default', () => {
+    const list = [
+      { name: 'Mango', price: 1 },
+      { name: 'Apple', price: 1 },
+      { name: 'Zebra', price: 1 },
+    ]
+    expect(names(sortByName(list))).toEqual(['Apple', 'Mango', 'Zebra'])
+    expect(names(sortByName(list, NAME_SORT.ASC))).toEqual(['Apple', 'Mango', 'Zebra'])
+  })
+  it('orders names Z→A in descending mode', () => {
+    const list = [
+      { name: 'Mango', price: 1 },
+      { name: 'Apple', price: 1 },
+      { name: 'Zebra', price: 1 },
+    ]
+    expect(names(sortByName(list, NAME_SORT.DESC))).toEqual(['Zebra', 'Mango', 'Apple'])
+  })
+  it('is case-insensitive', () => {
+    const list = [
+      { name: 'banana', price: 1 },
+      { name: 'Apple', price: 1 },
+      { name: 'cherry', price: 1 },
+    ]
+    expect(names(sortByName(list, NAME_SORT.ASC))).toEqual(['Apple', 'banana', 'cherry'])
+  })
+  it('orders Cyrillic names naturally (А→Я) and reverses on Z→A', () => {
+    const list = [
+      { name: 'Докторская', price: 1 },
+      { name: 'Бекон', price: 1 },
+      { name: 'Сосиски', price: 1 },
+    ]
+    expect(names(sortByName(list, NAME_SORT.ASC))).toEqual(['Бекон', 'Докторская', 'Сосиски'])
+    expect(names(sortByName(list, NAME_SORT.DESC))).toEqual(['Сосиски', 'Докторская', 'Бекон'])
+  })
+})
+
+describe('sortByName — price tie-break for equal names', () => {
+  it('breaks equal names by price ASCENDING in A→Z mode', () => {
+    const list = [
+      { name: 'Cola', price: 9000 },
+      { name: 'Cola', price: 3000 },
+      { name: 'Cola', price: 6000 },
+    ]
+    expect(sortByName(list, NAME_SORT.ASC).map((p) => p.price)).toEqual([3000, 6000, 9000])
+  })
+  it('STILL breaks equal names by price ASCENDING in Z→A mode (tie-break not reversed)', () => {
+    const list = [
+      { name: 'Cola', price: 9000 },
+      { name: 'Cola', price: 3000 },
+      { name: 'Cola', price: 6000 },
+    ]
+    expect(sortByName(list, NAME_SORT.DESC).map((p) => p.price)).toEqual([3000, 6000, 9000])
+  })
+  it('combines name order with the price tie-break', () => {
+    const list = [
+      { name: 'Suv', price: 5000 },
+      { name: 'Cola', price: 9000 },
+      { name: 'Cola', price: 4000 },
+    ]
+    expect(
+      sortByName(list, NAME_SORT.ASC).map((p) => `${p.name}:${p.price}`),
+    ).toEqual(['Cola:4000', 'Cola:9000', 'Suv:5000'])
+  })
+})
+
+describe('sortByName — purity', () => {
+  it('does not mutate the input array', () => {
+    const list = [
+      { name: 'B', price: 1 },
+      { name: 'A', price: 1 },
+    ]
+    const before = [...list]
+    sortByName(list, NAME_SORT.ASC)
+    expect(list).toEqual(before)
+  })
+})
+
+describe('sortProducts — dispatcher', () => {
+  const list = [
+    { name: 'Banana', price: 30000 },
+    { name: 'Apple', price: 10000 },
+    { name: 'Cherry', price: 20000 },
+  ]
+  it('routes price values to the price sort', () => {
+    expect(names(sortProducts(list, PRICE_SORT.ASC))).toEqual(['Apple', 'Cherry', 'Banana'])
+    expect(names(sortProducts(list, PRICE_SORT.DESC))).toEqual(['Banana', 'Cherry', 'Apple'])
+  })
+  it('routes name values to the name sort', () => {
+    expect(names(sortProducts(list, NAME_SORT.ASC))).toEqual(['Apple', 'Banana', 'Cherry'])
+    expect(names(sortProducts(list, NAME_SORT.DESC))).toEqual(['Cherry', 'Banana', 'Apple'])
+  })
+  it('defaults to price ascending', () => {
+    expect(names(sortProducts(list))).toEqual(['Apple', 'Cherry', 'Banana'])
+    expect(DEFAULT_SORT).toBe(PRICE_SORT.ASC)
+  })
+})
+
+describe('SORT_OPTIONS / sortLabel', () => {
+  it('exposes the four options in display order', () => {
+    expect(SORT_OPTIONS.map((o) => o.value)).toEqual([
+      PRICE_SORT.ASC,
+      PRICE_SORT.DESC,
+      NAME_SORT.ASC,
+      NAME_SORT.DESC,
+    ])
+  })
+  it('maps each value to its Uzbek label', () => {
+    expect(sortLabel(PRICE_SORT.ASC)).toBe('Narx (arzondan qimmatga)')
+    expect(sortLabel(PRICE_SORT.DESC)).toBe('Narx (qimmatdan arzonga)')
+    expect(sortLabel(NAME_SORT.ASC)).toBe('Nom (A → Z)')
+    expect(sortLabel(NAME_SORT.DESC)).toBe('Nom (Z → A)')
+  })
+  it('falls back to the default label for unknown values', () => {
+    expect(sortLabel('nope')).toBe(sortLabel(DEFAULT_SORT))
+  })
+})
+
 describe('formatPriceListRow', () => {
   it('formats a dona item as "<price> so\'m" (grouped thousands, no /kg)', () => {
     const row = formatPriceListRow({ name: 'Dlya zavtrak', price: 40000, unit: 'dona' })
@@ -151,6 +284,15 @@ describe('buildPriceListGroups', () => {
   it('honours the descending order', () => {
     const groups = buildPriceListGroups(products, categories, ['c1'], PRICE_SORT.DESC)
     expect(names(groups[0].products)).toEqual(['Bekon', 'Докторская'])
+  })
+  it('honours a NAME sort within each category', () => {
+    const groups = buildPriceListGroups(products, categories, ['c1', 'c2'], NAME_SORT.ASC)
+    // Latin sorts before Cyrillic; within c2 names go A→Z by name (not price).
+    expect(names(groups.find((g) => g.category.id === 'c1').products)).toEqual([
+      'Bekon',
+      'Докторская',
+    ])
+    expect(names(groups.find((g) => g.category.id === 'c2').products)).toEqual(['Cola', 'Suv'])
   })
   it('includes a selected-but-empty category with count 0', () => {
     const groups = buildPriceListGroups(products, categories, ['c3'], PRICE_SORT.ASC)

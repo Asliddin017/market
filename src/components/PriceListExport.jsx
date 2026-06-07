@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { PRICE_SORT } from '../lib/priceList'
+import { SORT_OPTIONS, DEFAULT_SORT } from '../lib/priceList'
 
 // ---------------------------------------------------------------------------
 // Staff-only "Bo'lim bo'yicha PDF yuklab olish": pick one/several/all
-// categories, choose the price sort order, and download a clean price-list PDF.
+// categories, choose the sort order (by price or name), and download a PDF.
 //
 // `products` + `categories` arrive ALREADY role-visible from the page (the data
 // hooks drop client-hidden categories), so this never exports a hidden section.
@@ -13,7 +13,7 @@ import { PRICE_SORT } from '../lib/priceList'
 export default function PriceListExport({ products = [], categories = [] }) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState(() => new Set())
-  const [order, setOrder] = useState(PRICE_SORT.ASC)
+  const [sort, setSort] = useState(DEFAULT_SORT)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [msg, setMsg] = useState('')
@@ -30,7 +30,7 @@ export default function PriceListExport({ products = [], categories = [] }) {
   function openPanel() {
     // Pre-select every category — the common case is "print everything".
     setSelected(new Set(categories.map((c) => c.id)))
-    setOrder(PRICE_SORT.ASC)
+    setSort(DEFAULT_SORT)
     setError('')
     setMsg('')
     setOpen(true)
@@ -68,7 +68,7 @@ export default function PriceListExport({ products = [], categories = [] }) {
         products,
         categories,
         selectedIds: selected,
-        sortOrder: order,
+        sortOrder: sort,
       })
       setMsg(`✓ ${res.products} mahsulot, ${res.categories} bo'lim yuklab olindi`)
       setTimeout(() => setMsg(''), 3500)
@@ -110,32 +110,25 @@ export default function PriceListExport({ products = [], categories = [] }) {
                 Bo'limlarni tanlang — narxlar ro'yxati PDF holida yuklab olinadi.
               </p>
 
-              {/* Sort order toggle */}
+              {/* Sort order — price asc/desc + name A→Z / Z→A */}
               <div className="mb-4">
                 <label className="label">Saralash</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOrder(PRICE_SORT.ASC)}
-                    className={`chip flex-1 justify-center ${
-                      order === PRICE_SORT.ASC
-                        ? 'border-brand-400/60 bg-brand-500/15 text-brand-200'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
-                    }`}
-                  >
-                    ↑ Arzondan qimmatga
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrder(PRICE_SORT.DESC)}
-                    className={`chip flex-1 justify-center ${
-                      order === PRICE_SORT.DESC
-                        ? 'border-brand-400/60 bg-brand-500/15 text-brand-200'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
-                    }`}
-                  >
-                    ↓ Qimmatdan arzonga
-                  </button>
+                <div className="grid grid-cols-2 gap-2">
+                  {SORT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSort(opt.value)}
+                      aria-pressed={sort === opt.value}
+                      className={`chip justify-center ${
+                        sort === opt.value
+                          ? 'border-brand-400/60 bg-brand-500/15 text-brand-200'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
