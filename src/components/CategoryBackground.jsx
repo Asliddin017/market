@@ -7,20 +7,22 @@ import { CATEGORY_THEMES, THEME_KEYS } from '../lib/categoryThemes'
 //  - "blobs" are radial-gradients (no expensive filter: blur)
 //  - blob transforms animate ONLY on the active layer (hidden layers idle)
 //  - honours prefers-reduced-motion (animations disabled globally in index.css)
+//  - LIGHT mode: the dark layers are hidden by CSS (html.light .cat-bg-dark)
+//    and a soft light gradient (.cat-bg) shows instead.
 // ---------------------------------------------------------------------------
 
 export default function CategoryBackground() {
   const themeKey = useUiStore((s) => s.themeKey)
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink-950" aria-hidden="true">
+    <div className="cat-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink-950" aria-hidden="true">
       {THEME_KEYS.map((key) => {
         const theme = CATEGORY_THEMES[key]
         const active = key === themeKey
         return (
           <div
             key={key}
-            className="absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none"
+            className="cat-bg-dark absolute inset-0 transition-opacity duration-700 ease-out motion-reduce:transition-none"
             style={{ opacity: active ? 1 : 0 }}
           >
             <div className="absolute inset-0" style={{ background: theme.base }} />
@@ -42,8 +44,8 @@ export default function CategoryBackground() {
         )
       })}
 
-      {/* Readability veil so foreground text always has enough contrast. */}
-      <div className="absolute inset-0 bg-ink-950/45" />
+      {/* Readability veil so foreground text always has enough contrast (dark only). */}
+      <div className="cat-veil absolute inset-0 bg-ink-950/45" />
     </div>
   )
 }

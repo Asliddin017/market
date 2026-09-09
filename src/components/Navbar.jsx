@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore, selectCount } from '../store/cartStore'
+import { useUiStore } from '../store/uiStore'
 import { ROLE_META, can } from '../lib/roles'
 
 // ---------------------------------------------------------------------------
@@ -18,6 +19,8 @@ export default function Navbar() {
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   const cartCount = useCartStore(selectCount)
+  const mode = useUiStore((s) => s.mode)
+  const toggleMode = useUiStore((s) => s.toggleMode)
   const navigate = useNavigate()
   const meta = ROLE_META[role]
 
@@ -66,13 +69,13 @@ export default function Navbar() {
           </NavLink>
 
           {/* Desktop nav */}
-          <nav className="ml-4 hidden items-center gap-1 md:flex">
+          <nav className="no-scrollbar ml-4 hidden min-w-0 items-center gap-1 overflow-x-auto md:flex">
             {links.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `relative rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  `relative shrink-0 whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition ${
                     isActive ? 'text-brand-200' : 'text-slate-300 hover:text-white'
                   }`
                 }
@@ -95,6 +98,15 @@ export default function Navbar() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={toggleMode}
+              className="btn-ghost h-9 w-9 rounded-full px-0 py-0 text-base"
+              title={mode === 'light' ? "Qorong'i rejim" : "Yorug' rejim"}
+              aria-label={mode === 'light' ? "Qorong'i rejimga o'tish" : "Yorug' rejimga o'tish"}
+            >
+              {mode === 'light' ? '🌙' : '☀️'}
+            </button>
             <span className="flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-semibold text-slate-200">
               <span>{meta?.icon}</span>
               <span className="max-w-[7rem] truncate">{user?.username}</span>

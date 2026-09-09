@@ -104,10 +104,10 @@ export default function Login() {
                   {mode === t.key && (
                     <motion.span
                       layoutId="authTab"
-                      className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600"
                     />
                   )}
-                  {t.label}
+                  <span className="relative">{t.label}</span>
                 </button>
               ))}
             </div>

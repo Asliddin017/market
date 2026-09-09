@@ -31,7 +31,7 @@ export default function ProductImage({ product, categoryIcon = '📦', className
     <div
       className={`flex h-full w-full items-center justify-center ${className}`}
       style={{
-        background: `linear-gradient(135deg, hsl(${hue} 45% 22%), hsl(${(hue + 40) % 360} 55% 14%))`,
+        background: `linear-gradient(135deg, hsl(${hue} var(--ph-s) var(--ph-l1)), hsl(${(hue + 40) % 360} var(--ph-s) var(--ph-l2)))`,
       }}
     >
       <span className="text-5xl opacity-80 drop-shadow-lg">{categoryIcon}</span>

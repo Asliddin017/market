@@ -37,6 +37,15 @@ export default function CartPage() {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [contactError, setContactError] = useState('')
+  // Phone sticky bar hides while the checkout panel itself is on screen.
+  const [checkoutVisible, setCheckoutVisible] = useState(false)
+  useEffect(() => {
+    const el = document.getElementById('checkout')
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => setCheckoutVisible(e.isIntersecting), { threshold: 0.2 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [items.length, loaded])
 
   // Prefill name + phone from the client's most recent order (editable).
   useEffect(() => {
@@ -152,12 +161,12 @@ export default function CartPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40 }}
-                className="glass flex items-center gap-4 rounded-2xl p-3"
+                className="glass flex flex-wrap items-center gap-3 rounded-2xl p-3"
               >
-                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl sm:h-20 sm:w-20">
                   <ProductImage product={item} />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 basis-40">
                   <h3 className="truncate font-semibold">{item.name}</h3>
 
                   {/* Price line: kg-custom (struck), piece (dona), or fixed. */}
@@ -221,18 +230,21 @@ export default function CartPage() {
                     Jami: {formatSom(cartLineTotal(item))}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => decrement(item.id)} className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20">−</button>
-                  <QtyInput
-                    live
-                    value={item.qty}
-                    onCommit={(n) => setQty(item.id, n)}
-                    aria-label="Soni"
-                    className="w-12 rounded-lg bg-ink-900/60 py-1 text-center text-sm"
-                  />
-                  <button onClick={() => increment(item.id)} className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20">+</button>
+                {/* Controls: own row on phones, inline on wider screens. */}
+                <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => decrement(item.id)} className="h-9 w-9 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20" aria-label="Kamaytirish">−</button>
+                    <QtyInput
+                      live
+                      value={item.qty}
+                      onCommit={(n) => setQty(item.id, n)}
+                      aria-label="Soni"
+                      className="w-14 rounded-lg bg-ink-900/60 py-1.5 text-center text-sm font-semibold"
+                    />
+                    <button onClick={() => increment(item.id)} className="h-9 w-9 rounded-lg bg-brand-500 text-lg font-bold leading-none text-ink-950 hover:brightness-110" aria-label="Ko'paytirish">+</button>
+                  </div>
+                  <button onClick={() => removeItem(item.id)} className="rounded-lg p-2 text-rose-400 hover:bg-rose-500/10" aria-label="Olib tashlash">🗑️</button>
                 </div>
-                <button onClick={() => removeItem(item.id)} className="ml-1 rounded-lg p-2 text-rose-400 hover:bg-rose-500/10">🗑️</button>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -299,7 +311,7 @@ export default function CartPage() {
       </div>
 
       {/* Phone: sticky total + jump to the checkout form (sits above the tab bar). */}
-      {items.length > 0 && !done && (
+      {items.length > 0 && !done && !checkoutVisible && (
         <div className="fixed inset-x-0 z-30 px-3 lg:hidden" style={{ bottom: 'calc(4.25rem + env(safe-area-inset-bottom))' }}>
           <div className="glass-strong mx-auto flex max-w-lg items-center justify-between gap-3 rounded-2xl px-4 py-2.5 shadow-card">
             <div>

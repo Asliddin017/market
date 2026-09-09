@@ -7,6 +7,13 @@
     color-scheme: dark;
     /* Top bar height — sticky page headers sit right under it. */
     --nav-h: 3.75rem;
+    /* Placeholder / category-tile colour ranges (dark defaults). */
+    --ph-s: 45%;
+    --ph-l1: 22%;
+    --ph-l2: 14%;
+    --tile-s: 55%;
+    --tile-l: 28%;
+    --tile-l2: 18%;
   }
 
   html,
@@ -120,6 +127,11 @@
     }
   }
 
+  /* Storefront banner. */
+  .hero {
+    @apply bg-gradient-to-br from-brand-500 via-brand-600 to-emerald-800 shadow-glow;
+  }
+
   /* Cheap one-shot fade/rise for list cards (replaces per-card framer-motion). */
   .card-enter {
     animation: card-enter 0.35s ease-out both;
@@ -192,3 +204,108 @@
     display: none;
   }
 }
+
+/* ===========================================================================
+ * LIGHT MODE  (html.light)
+ * ---------------------------------------------------------------------------
+ * The app was designed dark-first with Tailwind colour utilities everywhere.
+ * Instead of touching every component, light mode re-maps the handful of
+ * surface / text utilities the UI actually uses. Kept OUTSIDE the Tailwind
+ * layers so these rules win by source order; the `html.light` prefix adds
+ * specificity over the utilities themselves.
+ * =========================================================================== */
+html.light {
+  color-scheme: light;
+  --ph-s: 60%;
+  --ph-l1: 88%;
+  --ph-l2: 78%;
+  --tile-s: 70%;
+  --tile-l: 88%;
+  --tile-l2: 80%;
+}
+html.light body {
+  background: #f3f6f4;
+  color: #0f172a;
+}
+/* background: soft light gradient instead of the dark category layers */
+html.light .cat-bg {
+  background: radial-gradient(120% 80% at 80% -10%, #dcf5e7 0%, #f3f6f4 55%, #eef2f7 100%);
+}
+html.light .cat-bg-dark,
+html.light .cat-veil {
+  display: none;
+}
+
+/* text ----------------------------------------------------------------------*/
+html.light .text-slate-100,
+html.light .text-slate-200 { color: #0f172a; }
+html.light .text-slate-300 { color: #334155; }
+html.light .text-slate-400 { color: #64748b; }
+html.light .text-slate-500 { color: #94a3b8; }
+html.light .text-white { color: #ffffff; }
+html.light .text-brand-100,
+html.light .text-brand-200 { color: #065f46; }
+html.light .text-brand-300 { color: #047857; }
+html.light .text-gold-300,
+html.light .text-gold-400 { color: #b45309; }
+html.light .text-rose-200,
+html.light .text-rose-300 { color: #be123c; }
+html.light .text-rose-400 { color: #e11d48; }
+html.light .text-amber-300 { color: #b45309; }
+html.light .text-emerald-300 { color: #047857; }
+html.light .text-sky-300 { color: #0369a1; }
+html.light .placeholder\:text-slate-500::placeholder { color: #94a3b8; }
+html.light .hover\:text-white:hover { color: #0f172a; }
+
+/* surfaces ------------------------------------------------------------------*/
+html.light .glass {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 30px -18px rgba(15, 23, 42, 0.25);
+}
+html.light .glass-strong {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+html.light .bg-white\/5,
+html.light .bg-white\/\[0\.06\],
+html.light .bg-white\/\[0\.07\] { background-color: #ffffff; }
+html.light .bg-white\/10 { background-color: #eef2f7; }
+html.light .hover\:bg-white\/10:hover { background-color: #e2e8f0; }
+html.light .hover\:bg-white\/20:hover { background-color: #cbd5e1; }
+html.light .hover\:bg-white\/5:hover { background-color: #f1f5f9; }
+html.light .border-white\/10,
+html.light .border-white\/20 { border-color: rgba(15, 23, 42, 0.1); }
+html.light .border-white\/5 { border-color: rgba(15, 23, 42, 0.06); }
+html.light .divide-white\/10 > * + * { border-color: rgba(15, 23, 42, 0.1); }
+html.light .bg-ink-950\/80,
+html.light .bg-ink-950\/90 { background-color: rgba(255, 255, 255, 0.92); }
+html.light .bg-ink-950\/40,
+html.light .bg-ink-900\/40,
+html.light .bg-ink-900\/60 { background-color: #ffffff; }
+html.light .bg-ink-950\/60,
+html.light .bg-ink-950\/75 { background-color: rgba(15, 23, 42, 0.7); color: #fff; }
+html.light .bg-ink-950\/70 { background-color: rgba(15, 23, 42, 0.45); }
+html.light .bg-ink-900\/70,
+html.light .bg-ink-900\/85,
+html.light .bg-ink-900\/90 { background-color: rgba(255, 255, 255, 0.96); }
+html.light .shadow-card { box-shadow: 0 16px 40px -24px rgba(15, 23, 42, 0.35); }
+html.light .skeleton { background-color: #e2e8f0; }
+html.light .input {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+html.light .btn-ghost {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+html.light .btn-ghost:hover { background: #f1f5f9; }
+html.light .btn-primary,
+html.light .btn-gold { color: #062c22; }
+html.light .toast { color: #062c22; }
+html.light .chip.bg-white\/5 { background: #ffffff; }
+html.light ::-webkit-scrollbar-thumb { background: rgba(5, 150, 105, 0.35); }
+/* Keep image overlays readable: the chip on a card image stays dark. */
+html.light .from-ink-950\/70 { --tw-gradient-from: rgba(15, 23, 42, 0.55) var(--tw-gradient-from-position); --tw-gradient-to: rgba(15, 23, 42, 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }

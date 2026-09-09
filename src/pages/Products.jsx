@@ -175,8 +175,28 @@ export default function Products() {
         </div>
       </div>
 
+      {/* Storefront banner (only on the unfiltered list). */}
+      {!activeCategory && !query && (
+        <section className="hero relative overflow-hidden rounded-3xl p-5 sm:p-7">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-12 left-1/3 h-40 w-40 rounded-full bg-gold-400/30 blur-2xl" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">ASL ZIYO market</p>
+              <h2 className="mt-1 font-display text-xl font-extrabold text-white sm:text-2xl">
+                {canAddToCart ? 'Tanlang, savatga soling, olib keting' : "Bugungi narxlar ro'yxati"}
+              </h2>
+              <p className="mt-1 text-xs text-white/80 sm:text-sm">
+                {products.length} ta mahsulot · {categories.length} ta bo'lim · narxlar so'mda
+              </p>
+            </div>
+            <span className="hidden text-6xl drop-shadow-lg sm:block">🛍️</span>
+          </div>
+        </section>
+      )}
+
       {/* Sticky search: always one thumb away while scrolling a long list. */}
-      <div className="sticky top-[var(--nav-h)] z-30 -mx-4 space-y-2 bg-ink-950/80 px-4 py-2 backdrop-blur-md md:mx-0 md:rounded-2xl md:px-0 md:backdrop-blur-none md:bg-transparent">
+      <div className="sticky top-[var(--nav-h)] z-30 -mx-4 bg-ink-950/80 px-4 py-2 backdrop-blur-md md:mx-0 md:px-0">
         <SearchBar
           value={query}
           onChange={setQuery}
@@ -184,13 +204,15 @@ export default function Products() {
           exact={exact}
           onToggleExact={() => setExact((v) => !v)}
         />
-        <CategoryStrip
-          categories={categories}
-          activeId={activeCat}
-          onSelect={setActiveCat}
-          counts={countByCat}
-        />
       </div>
+
+      {/* Category tiles (scroll away with the page; the search stays). */}
+      <CategoryStrip
+        categories={categories}
+        activeId={activeCat}
+        onSelect={setActiveCat}
+        counts={countByCat}
+      />
 
       {/* Grid — explicit loading / error / empty / data states */}
       {error ? (

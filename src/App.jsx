@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useCartStore } from './store/cartStore'
+import { useUiStore } from './store/uiStore'
 import { can } from './lib/roles'
 import { isSupabaseConfigured } from './lib/supabase'
 import Layout from './components/Layout'
@@ -32,6 +33,17 @@ export default function App() {
   useEffect(() => {
     bootstrap()
   }, [bootstrap])
+
+  // Colour mode -> <html class="light|dark"> (+ native form controls).
+  const mode = useUiStore((s) => s.mode)
+  useEffect(() => {
+    const el = document.documentElement
+    el.classList.toggle('light', mode === 'light')
+    el.classList.toggle('dark', mode !== 'light')
+    el.style.colorScheme = mode === 'light' ? 'light' : 'dark'
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute('content', mode === 'light' ? '#f4f7f5' : '#022c22')
+  }, [mode])
 
   // Load the logged-in client's saved cart (clients only; clear otherwise).
   useEffect(() => {
