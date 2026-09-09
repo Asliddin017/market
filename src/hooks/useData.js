@@ -6,6 +6,7 @@ import { resolveCategoryIcon } from '../lib/categoryIcons'
 import { isStaff, visibleCategories } from '../lib/visibility'
 import { normalizePhone } from '../lib/phone'
 import { deleteProductImage } from '../lib/storage'
+import { currentDeviceInfo } from '../lib/device'
 
 // ---------------------------------------------------------------------------
 // Data access layer (Supabase).
@@ -69,6 +70,21 @@ export const mapProfile = (r) => ({
   username: r.username,
   role: r.role,
   createdAt: r.created_at,
+})
+
+export const mapLoginEvent = (r) => ({
+  id: r.id,
+  userId: r.user_id,
+  kind: r.kind ?? 'login', // 'login' (signed in) | 'visit' (opened with a saved session)
+  deviceType: r.device_type ?? null,
+  os: r.os ?? null,
+  browser: r.browser ?? null,
+  screen: r.screen ?? null,
+  language: r.language ?? null,
+  userAgent: r.user_agent ?? null,
+  createdAt: r.created_at,
+  username: r.profiles?.username ?? null,
+  role: r.profiles?.role ?? null,
 })
 
 export const mapOrderItem = (r) => ({
@@ -564,6 +580,43 @@ export function useStats({ days = 30, topN = 5 } = {}) {
     ])
     return { stats, daily, products, categories }
   }, `stats:${days}:${topN}`)
+}
+
+// ---- Login log (kirish loglari) --------------------------------------------
+//
+// The client records one row per sign-in ('login') or per app open with a
+// saved session ('visit'), with the device/browser it came from. RLS: a user
+// can only insert rows about themself; only admins can read them.
+
+/** Record that the current user signed in / opened the app on this device. */
+export async function recordLoginEvent(userId, kind = 'login') {
+  if (!userId) return
+  const d = currentDeviceInfo()
+  const { error } = await supabase.from('login_events').insert({
+    user_id: userId,
+    kind,
+    device_type: d.deviceType,
+    os: d.os,
+    browser: d.browser,
+    screen: d.screen,
+    language: d.language,
+    user_agent: d.userAgent,
+  })
+  // Never block the app on logging (e.g. the table is not created yet).
+  if (error) console.error('[login-log] yozib bo‘lmadi:', error.message)
+}
+
+/** Admin: live list of the most recent login events across all users. */
+export function useLoginEvents(limitN = 200) {
+  return useLiveTable('login_events', async () => {
+    const { data, error } = await supabase
+      .from('login_events')
+      .select('*, profiles ( username, role )')
+      .order('created_at', { ascending: false })
+      .limit(limitN)
+    if (error) throw error
+    return data.map(mapLoginEvent)
+  }, `login-events:${limitN}`)
 }
 
 // ---- Contacts ("Aloqa") ----------------------------------------------------

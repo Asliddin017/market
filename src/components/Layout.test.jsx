@@ -25,12 +25,12 @@ beforeEach(() => {
   })
 })
 
-function renderApp(initial = '/') {
+function renderApp(initial = "/home") {
   return render(
     <MemoryRouter initialEntries={[initial]}>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Page name="home" />} />
+          <Route path="/home" element={<Page name="home" />} />
           <Route path="/products" element={<Page name="products" />} />
           <Route path="/categories" element={<Page name="categories" />} />
           <Route path="/users" element={<Page name="users" />} />
@@ -45,7 +45,7 @@ const link = (re) => screen.getAllByRole('link', { name: re })[0]
 describe('Layout navigation never leaves a blank body', () => {
   it('renders the destination route content on every tab click', async () => {
     const user = userEvent.setup()
-    renderApp('/')
+    renderApp("/home")
     expect(screen.getByText('page:home')).toBeInTheDocument()
 
     await user.click(link(/Mahsulotlar/i))
@@ -63,7 +63,7 @@ describe('Layout navigation never leaves a blank body', () => {
 
   it('mounts each destination page on navigation (fetch fires on mount)', async () => {
     const user = userEvent.setup()
-    renderApp('/')
+    renderApp("/home")
 
     await user.click(link(/Kategoriyalar/i))
     await screen.findByText('page:categories')
@@ -77,7 +77,7 @@ describe('Layout navigation never leaves a blank body', () => {
 
   it('survives rapid back-and-forth navigation without going blank', async () => {
     const user = userEvent.setup()
-    renderApp('/')
+    renderApp("/home")
 
     for (let i = 0; i < 6; i++) {
       await user.click(link(/Mahsulotlar/i))

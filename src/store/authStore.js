@@ -15,6 +15,23 @@ import { ROLES } from '../lib/roles'
 
 let bootstrapped = false
 
+// Write ONE login-log row per browser tab + account: a real sign-in is
+// 'login'; opening the app with a saved session is 'visit'. sessionStorage
+// keeps a refresh (F5) from logging again in the same tab.
+async function logSessionOnce(session, kind) {
+  const uid = session?.user?.id
+  if (!uid) return
+  const key = `asl-ziyo:logged:${uid}`
+  try {
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+  } catch {
+    /* sessionStorage unavailable (private mode) — still log once per load */
+  }
+  const { recordLoginEvent } = await import('../hooks/useData')
+  recordLoginEvent(uid, kind)
+}
+
 /** Map common Supabase auth errors to friendly Uzbek messages. */
 function translate(error) {
   const msg = (error?.message || '').toLowerCase()
@@ -46,13 +63,15 @@ export const useAuthStore = create((set, get) => ({
         data: { session },
       } = await supabase.auth.getSession()
       await get()._applySession(session)
+      if (session) logSessionOnce(session, 'visit')
     } catch (err) {
       console.error('[auth] bootstrap failed:', err)
     } finally {
       set({ ready: true })
     }
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       get()._applySession(session)
+      if (event === 'SIGNED_IN' && session) logSessionOnce(session, 'login')
     })
   },
 
@@ -125,6 +144,12 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
+    try {
+      const uid = get().user?.id
+      if (uid) sessionStorage.removeItem(`asl-ziyo:logged:${uid}`)
+    } catch {
+      /* ignore */
+    }
     await supabase.auth.signOut()
     set({ user: null, role: null })
     // Cached lists belong to the account that just left.

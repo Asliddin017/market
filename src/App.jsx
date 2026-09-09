@@ -84,7 +84,9 @@ export default function App() {
         <Suspense fallback={<LoadingState />}>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<Home />} />
+            {/* The shop opens on the product list for everyone; the welcome page lives at /home. */}
+            <Route path="/" element={<Navigate to="/products" replace />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route
               path="/rasm-qoshish"
@@ -112,7 +114,7 @@ export default function App() {
               path="/statistika"
               element={can(role, 'viewStats') ? <Statistika /> : <Forbidden />}
             />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/products" replace />} />
           </Route>
         </Routes>
         </Suspense>

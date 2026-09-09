@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useUsers, updateUserRole, getUserCart } from '../hooks/useData'
+import { useUsers, updateUserRole, getUserCart, useLoginEvents } from '../hooks/useData'
+import { deviceLabel } from '../lib/device'
 import { useAuthStore } from '../store/authStore'
 import { useThemeKey } from '../hooks/useThemeKey'
 import { ROLES, ROLE_META } from '../lib/roles'
@@ -17,8 +18,29 @@ const roleBadge = {
   [ROLES.CLIENT]: 'bg-gold-500/20 text-gold-400',
 }
 
-function UserRow({ user, isSelf }) {
+const KIND_LABEL = { login: '🔑 Kirdi', visit: '👁️ Ochdi' }
+const EMPTY = []
+
+/** One login-log line: time · kind · device. */
+function LogLine({ ev, showUser = false }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 rounded-lg bg-white/5 px-3 py-1.5 text-xs">
+      <span className="tabular-nums text-slate-300">{formatDateTime(ev.createdAt)}</span>
+      {showUser && <span className="font-semibold text-slate-100">{ev.username ?? '—'}</span>}
+      <span className={ev.kind === 'login' ? 'text-brand-300' : 'text-slate-400'}>
+        {KIND_LABEL[ev.kind] ?? ev.kind}
+      </span>
+      <span className="text-slate-300" title={ev.userAgent ?? ''}>{deviceLabel(ev)}</span>
+      {ev.screen && <span className="text-slate-500">{ev.screen}</span>}
+      {ev.language && <span className="text-slate-500">{ev.language}</span>}
+    </div>
+  )
+}
+
+function UserRow({ user, isSelf, events = EMPTY }) {
   const [open, setOpen] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
+  const lastEvent = events[0] ?? null
   const [cart, setCart] = useState(null)
   const [loadingCart, setLoadingCart] = useState(false)
   const [cartError, setCartError] = useState(false)
@@ -72,6 +94,11 @@ function UserRow({ user, isSelf }) {
             {isSelf && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-slate-300">siz</span>}
           </div>
           <p className="text-xs text-slate-400">Ro'yxatdan o'tgan: {formatDateTime(user.createdAt)}</p>
+          <p className="text-xs text-slate-400">
+            {lastEvent
+              ? `Oxirgi faollik: ${formatDateTime(lastEvent.createdAt)} · ${deviceLabel(lastEvent)}`
+              : 'Oxirgi faollik: hali yozilmagan'}
+          </p>
         </div>
 
         <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-semibold sm:inline ${roleBadge[role]}`}>
@@ -99,7 +126,32 @@ function UserRow({ user, isSelf }) {
             🛒 Savatcha {open ? '▲' : '▼'}
           </button>
         )}
+        <button onClick={() => setLogOpen((v) => !v)} className="btn-ghost px-3 py-1.5 text-xs">
+          🕒 Loglar ({events.length}) {logOpen ? '▲' : '▼'}
+        </button>
       </div>
+
+      {/* Per-user login log */}
+      <AnimatePresence>
+        {logOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3 overflow-hidden border-t border-white/10 pt-3"
+          >
+            {events.length === 0 ? (
+              <p className="text-sm text-slate-400">Bu foydalanuvchi uchun kirish yozuvi yo'q.</p>
+            ) : (
+              <div className="max-h-64 space-y-1.5 overflow-auto">
+                {events.map((ev) => (
+                  <LogLine key={ev.id} ev={ev} />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Client cart viewer */}
       <AnimatePresence>
@@ -149,6 +201,24 @@ export default function Users() {
   const me = useAuthStore((s) => s.user)
   useThemeKey('default')
 
+  // Login log (admin-only table; RLS). Grouped per user for the rows below and
+  // shown as one recent list at the bottom.
+  const logQuery = useLoginEvents(300)
+  const events = logQuery.data ?? EMPTY
+  const eventsByUser = useMemo(() => {
+    const m = new Map()
+    for (const ev of events) {
+      if (!m.has(ev.userId)) m.set(ev.userId, [])
+      m.get(ev.userId).push(ev)
+    }
+    return m
+  }, [events])
+  const [logFilter, setLogFilter] = useState('all') // 'all' | 'login' | 'visit'
+  const recent = useMemo(
+    () => (logFilter === 'all' ? events : events.filter((e) => e.kind === logFilter)).slice(0, 100),
+    [events, logFilter],
+  )
+
   const counts = users.reduce((acc, u) => {
     acc[u.role] = (acc[u.role] ?? 0) + 1
     return acc
@@ -172,10 +242,52 @@ export default function Users() {
       ) : (
         <div className="space-y-3">
           {users.map((u) => (
-            <UserRow key={u.id} user={u} isSelf={me?.id === u.id} />
+            <UserRow key={u.id} user={u} isSelf={me?.id === u.id} events={eventsByUser.get(u.id) ?? EMPTY} />
           ))}
         </div>
       )}
+
+      {/* Recent login log across all users */}
+      <section className="glass rounded-2xl p-5">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="font-display text-lg font-bold">🕒 Kirish tarixi</h2>
+            <p className="text-xs text-slate-400">
+              Kim, qachon, qaysi qurilma va brauzerdan kirgan (so'nggi {recent.length} ta).
+            </p>
+          </div>
+          <div className="flex gap-1.5">
+            {[
+              ['all', 'Barchasi'],
+              ['login', '🔑 Kirganlar'],
+              ['visit', '👁️ Ochganlar'],
+            ].map(([v, label]) => (
+              <button
+                key={v}
+                onClick={() => setLogFilter(v)}
+                className={`chip ${logFilter === v ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {logQuery.error ? (
+          <p className="text-sm text-rose-300">
+            Loglarni yuklab bo'lmadi. `supabase/login_events.sql` ishga tushirilganini tekshiring.
+          </p>
+        ) : logQuery.loading ? (
+          <p className="text-sm text-slate-400">Yuklanmoqda…</p>
+        ) : recent.length === 0 ? (
+          <p className="text-sm text-slate-400">Hozircha yozuv yo'q — foydalanuvchilar kirgach paydo bo'ladi.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {recent.map((ev) => (
+              <LogLine key={ev.id} ev={ev} showUser />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   )
 }

@@ -13,8 +13,8 @@ export default function Navbar() {
   const meta = ROLE_META[role]
 
   const links = [
-    { to: '/', label: 'Bosh sahifa', icon: '🏠', show: true },
     { to: '/products', label: 'Mahsulotlar', icon: '📦', show: true },
+    { to: '/home', label: 'Bosh sahifa', icon: '🏠', show: true },
     { to: '/rasm-qoshish', label: 'Rasm qo\'shish', icon: '📸', show: can(role, 'manageProducts') },
     { to: '/categories', label: 'Kategoriyalar', icon: '🏷️', show: true },
     {
@@ -31,13 +31,13 @@ export default function Navbar() {
 
   function handleLogout() {
     logout()
-    navigate('/')
+    navigate('/products')
   }
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-ink-950/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
-        <NavLink to="/" className="flex items-center gap-2">
+        <NavLink to="/products" className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 text-lg shadow-glow">
             🛍️
           </span>

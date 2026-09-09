@@ -239,6 +239,18 @@ To'liq idempotent.
 supabase db execute --file supabase/update_2026_09.sql
 ```
 
+### 4.6) Kirish loglari (admin uchun)
+`supabase/login_events.sql` ni ishga tushiring. U `login_events` jadvalini yaratadi:
+har bir foydalanuvchi **kirganda** (`login`) yoki saqlangan sessiya bilan **ilovani
+ochganda** (`visit`) bitta yozuv qo'shiladi — vaqt, qurilma turi (telefon / planshet /
+kompyuter), OS, brauzer, ekran o'lchami, til, xom user-agent. Faqat **admin** o'qiydi
+("Foydalanuvchilar" sahifasi: har bir foydalanuvchi ostida "Loglar" va pastda umumiy
+"Kirish tarixi"). IP manzil brauzerdan olinmaydi, shuning uchun yozilmaydi.
+
+```bash
+supabase db execute --file supabase/login_events.sql
+```
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda
