@@ -163,6 +163,37 @@ export default function OrderDetail() {
         <OrderStatusBadge status={order.status} className="text-sm" />
       </div>
 
+      {/* Status timeline: placed -> preparing -> ready */}
+      <ol className="glass flex items-center gap-2 rounded-2xl px-4 py-3 print:hidden" aria-label="Buyurtma holati">
+        {ORDER_STATUS_FLOW.map((st, i) => {
+          const done = currentIdx >= i
+          const current = currentIdx === i
+          const m = statusMeta(st)
+          return (
+            <li key={st} className="flex flex-1 items-center gap-2 last:flex-none">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm transition ${
+                    done ? 'bg-brand-500 text-ink-950 shadow-glow' : 'bg-white/10 text-slate-500'
+                  } ${current ? 'ring-4 ring-brand-500/25' : ''}`}
+                >
+                  {done ? (i < currentIdx ? '✓' : m.icon) : i + 1}
+                </span>
+                <span className={`hidden text-xs font-semibold sm:inline ${done ? 'text-slate-100' : 'text-slate-500'}`}>
+                  {m.label}
+                </span>
+              </div>
+              {i < ORDER_STATUS_FLOW.length - 1 && (
+                <span className={`h-0.5 flex-1 rounded-full ${currentIdx > i ? 'bg-brand-500' : 'bg-white/10'}`} />
+              )}
+            </li>
+          )
+        })}
+      </ol>
+      <p className="-mt-3 text-center text-xs text-slate-400 sm:hidden print:hidden">
+        {statusMeta(order.status).icon} {statusMeta(order.status).label}
+      </p>
+
       {/* Client notice: some items unavailable */}
       {unavailableCount > 0 && !isStaff && (
         <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-200 print:hidden">
@@ -366,7 +397,7 @@ export default function OrderDetail() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow print:hidden"
+            className="toast print:hidden"
           >
             {toast}
           </motion.div>

@@ -10,16 +10,17 @@ import { isStaff } from '../lib/visibility'
 import { smartSearch, exactSearch } from '../lib/search'
 import { resolveThemeKey } from '../lib/categoryThemes'
 import SearchBar from '../components/SearchBar'
+import CategoryStrip from '../components/CategoryStrip'
 import ProductCard from '../components/ProductCard'
 import ProductForm from '../components/ProductForm'
 import ConfirmDialog from '../components/ConfirmDialog'
 import BackupControls from '../components/BackupControls'
 import PriceListExport from '../components/PriceListExport'
-import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
+import { ErrorState, EmptyState, ProductGridSkeleton } from '../components/AsyncStates'
 
 // How many products to render at once. Keeps the DOM light even with thousands
 // of products; "Ko'proq" reveals the next page. Avoids long main-thread work.
-const PAGE_SIZE = 24
+const PAGE_SIZE = 30
 
 // Stable empty fallbacks so memo deps don't change identity every render while
 // data is still loading (a fresh `[]` each render would defeat memoization).
@@ -40,6 +41,9 @@ export default function Products() {
   }
   const role = useAuthStore((s) => s.role)
   const addToCart = useCartStore((s) => s.addItem)
+  const increment = useCartStore((s) => s.increment)
+  const decrement = useCartStore((s) => s.decrement)
+  const cartItems = useCartStore((s) => s.items)
   const setThemeKey = useUiStore((s) => s.setThemeKey)
 
   // The active category lives in the URL (?cat=<id>) so the Home page's
@@ -64,10 +68,21 @@ export default function Products() {
   const canAddToCart = can(role, 'useCart')
   const isAdmin = role === ROLES.ADMIN
 
-  const catById = useMemo(
-    () => new Map(categories.map((c) => [c.id, c])),
-    [categories],
-  )
+  const catById = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories])
+
+  // Product count per category (shown on the chips).
+  const countByCat = useMemo(() => {
+    const m = new Map()
+    for (const p of products) m.set(p.categoryId, (m.get(p.categoryId) ?? 0) + 1)
+    return m
+  }, [products])
+
+  // Quantity already in the cart, per product id (drives the card stepper).
+  const cartQtyById = useMemo(() => {
+    const m = new Map()
+    for (const i of cartItems) m.set(i.id, i.qty)
+    return m
+  }, [cartItems])
 
   // Defer the query so typing stays buttery: the input updates instantly while
   // the (heavier) fuzzy filtering runs against the deferred value.
@@ -99,6 +114,7 @@ export default function Products() {
   }, [activeCat, catById, setThemeKey])
 
   const shown = results.slice(0, visible)
+  const activeCategory = activeCat != null ? catById.get(activeCat) : null
 
   function openCreate() {
     setEditing(null)
@@ -116,23 +132,39 @@ export default function Products() {
       await deleteProduct(target.id)
     } catch (err) {
       console.error('[products] delete failed:', err)
-      setToast("O'chirishda xatolik yuz berdi")
-      setTimeout(() => setToast(''), 2500)
+      flash("O'chirishda xatolik yuz berdi")
     }
+  }
+  function flash(msg) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 1800)
   }
   function handleAddToCart(p, opts) {
     addToCart(p, 1, opts)
-    setToast(`"${p.name}" savatga qo'shildi`)
-    setTimeout(() => setToast(''), 2000)
+    flash(`"${p.name}" savatga qo'shildi`)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Mahsulotlar</h1>
-          <p className="text-sm text-slate-400">{products.length} ta mahsulot · {categories.length} ta kategoriya</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+            {activeCategory ? (
+              <>
+                <span className="mr-1.5">{activeCategory.icon}</span>
+                {activeCategory.name}
+              </>
+            ) : (
+              'Mahsulotlar'
+            )}
+          </h1>
+          <p className="text-xs text-slate-400 sm:text-sm">
+            {activeCategory
+              ? `${results.length} ta mahsulot · `
+              : `${products.length} ta mahsulot · ${categories.length} ta bo'lim · `}
+            {canAddToCart ? 'kartadagi "Savatga" bilan qo\'shing' : 'narxlar so\'mda'}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {isStaff(role) && <PriceListExport products={products} categories={categories} />}
@@ -143,43 +175,36 @@ export default function Products() {
         </div>
       </div>
 
-      <SearchBar
-        value={query}
-        onChange={setQuery}
-        resultCount={results.length}
-        exact={exact}
-        onToggleExact={() => setExact((v) => !v)}
-      />
-
-      {/* Category filter chips */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setActiveCat(null)}
-          className={`chip ${activeCat == null ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300'}`}
-        >
-          🌐 Barchasi
-        </button>
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setActiveCat(activeCat === c.id ? null : c.id)}
-            className={`chip ${activeCat === c.id ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}
-          >
-            {c.icon} {c.name}
-          </button>
-        ))}
+      {/* Sticky search: always one thumb away while scrolling a long list. */}
+      <div className="sticky top-[var(--nav-h)] z-30 -mx-4 space-y-2 bg-ink-950/80 px-4 py-2 backdrop-blur-md md:mx-0 md:rounded-2xl md:px-0 md:backdrop-blur-none md:bg-transparent">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          resultCount={results.length}
+          exact={exact}
+          onToggleExact={() => setExact((v) => !v)}
+        />
+        <CategoryStrip
+          categories={categories}
+          activeId={activeCat}
+          onSelect={setActiveCat}
+          counts={countByCat}
+        />
       </div>
 
       {/* Grid — explicit loading / error / empty / data states */}
       {error ? (
         <ErrorState onRetry={retry} />
       ) : loading ? (
-        <LoadingState label="Mahsulotlar yuklanmoqda…" />
+        <ProductGridSkeleton />
       ) : results.length === 0 ? (
-        <EmptyState title="Hech narsa topilmadi" hint="Boshqa so'z bilan urinib ko'ring." />
+        <EmptyState
+          title="Hech narsa topilmadi"
+          hint={exact ? "Aniq qidiruv yoqilgan — uni o'chirib ko'ring." : "Boshqa so'z bilan urinib ko'ring."}
+        />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
             {shown.map((p) => {
               const cat = catById.get(p.categoryId)
               return (
@@ -191,9 +216,12 @@ export default function Products() {
                   canManage={canManage}
                   canDelete={canDelete}
                   canAddToCart={canAddToCart}
+                  cartQty={cartQtyById.get(p.id) ?? 0}
                   onEdit={openEdit}
                   onDelete={setToDelete}
                   onAddToCart={handleAddToCart}
+                  onIncrement={(prod) => increment(prod.id)}
+                  onDecrement={(prod) => decrement(prod.id)}
                 />
               )
             })}
@@ -231,7 +259,7 @@ export default function Products() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow"
+            className="toast"
           >
             ✓ {toast}
           </motion.div>

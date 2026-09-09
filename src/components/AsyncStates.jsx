@@ -43,3 +43,25 @@ export function EmptyState({ icon = '🔍', title = 'Hech narsa topilmadi', hint
     </div>
   )
 }
+
+/**
+ * Skeleton grid shown while the product list loads: the page keeps its shape
+ * (no spinner "jump"), which reads as faster than a blank panel.
+ */
+export function ProductGridSkeleton({ count = 8 }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5" role="status" aria-live="polite" aria-label="Yuklanmoqda">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06]">
+          <div className="skeleton aspect-square" />
+          <div className="space-y-2 p-3">
+            <div className="skeleton h-3.5 w-11/12 rounded" />
+            <div className="skeleton h-3.5 w-7/12 rounded" />
+            <div className="skeleton mt-3 h-5 w-1/2 rounded" />
+            <div className="skeleton h-9 w-full rounded-xl" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}

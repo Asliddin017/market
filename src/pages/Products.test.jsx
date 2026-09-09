@@ -41,7 +41,8 @@ describe('Products page states', () => {
     productsState = { data: undefined, loading: true, error: null }
     categoriesState = { data: undefined, loading: true, error: null }
     render(<Products />)
-    expect(screen.getByText(/yuklanmoqda/i)).toBeInTheDocument()
+    // Skeleton grid announces itself as a live "Yuklanmoqda" status region.
+    expect(screen.getByRole('status', { name: /yuklanmoqda/i })).toBeInTheDocument()
   })
 
   it('renders products once loaded', () => {

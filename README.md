@@ -266,6 +266,17 @@ supabase db execute --file supabase/login_events.sql
 supabase db execute --file supabase/update_2026_09b.sql
 ```
 
+### 4.8) Admin parol o'rnatishi
+`supabase/admin_password.sql` — `admin_set_user_password(user_id, parol)` funksiyasi.
+Parollar Supabase da faqat **bcrypt hash** ko'rinishida saqlanadi, shuning uchun
+mavjud parolni **ko'rsatib bo'lmaydi**. Admin "Foydalanuvchilar" sahifasida 🔑 tugma
+bilan foydalanuvchiga **yangi parol** qo'yadi (👁️ bilan ko'rib yozadi); eski sessiyalar
+yopiladi. Faqat admin chaqira oladi, kamida 6 ta belgi.
+
+```bash
+supabase db execute --file supabase/admin_password.sql
+```
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda

@@ -191,7 +191,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
-            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow"
+            className="toast"
           >
             ✓ {toast}
           </motion.div>

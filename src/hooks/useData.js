@@ -810,6 +810,16 @@ export async function setUserActive(id, isActive) {
   if (error) throw error
 }
 
+/** Admin: set a NEW password for an account (server-side bcrypt; the old one
+ *  can never be read back). See supabase/admin_password.sql. */
+export async function adminSetUserPassword(userId, newPassword) {
+  const { error } = await supabase.rpc('admin_set_user_password', {
+    target_user_id: userId,
+    new_password: newPassword,
+  })
+  if (error) throw error
+}
+
 /** Admin: delete deactivated accounts unseen for `days` days. Returns the count. */
 export async function cleanupInactiveUsers(days = 30) {
   const { data, error } = await supabase.rpc('cleanup_inactive_users', { days })

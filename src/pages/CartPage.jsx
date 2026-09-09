@@ -240,7 +240,7 @@ export default function CartPage() {
 
         {/* Summary */}
         {items.length > 0 && (
-          <div className="lg:sticky lg:top-24 lg:self-start">
+          <div id="checkout" className="scroll-mt-24 lg:sticky lg:top-24 lg:self-start">
             <div className="glass-strong space-y-4 rounded-2xl p-5">
               <h3 className="font-semibold">Buyurtma xulosasi</h3>
               <div className="space-y-2 text-sm">
@@ -297,6 +297,21 @@ export default function CartPage() {
           </div>
         )}
       </div>
+
+      {/* Phone: sticky total + jump to the checkout form (sits above the tab bar). */}
+      {items.length > 0 && !done && (
+        <div className="fixed inset-x-0 z-30 px-3 lg:hidden" style={{ bottom: 'calc(4.25rem + env(safe-area-inset-bottom))' }}>
+          <div className="glass-strong mx-auto flex max-w-lg items-center justify-between gap-3 rounded-2xl px-4 py-2.5 shadow-card">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">Jami · {count} ta</p>
+              <p className="text-lg font-extrabold text-brand-300 tabular-nums">{formatSom(total)}</p>
+            </div>
+            <a href="#checkout" className="btn-gold px-4 py-2 text-sm">
+              Buyurtma berish →
+            </a>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={confirmClear}

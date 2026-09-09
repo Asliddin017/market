@@ -51,7 +51,7 @@ describe('Layout navigation never leaves a blank body', () => {
     await user.click(link(/Mahsulotlar/i))
     expect(await screen.findByText('page:products')).toBeInTheDocument()
 
-    await user.click(link(/Kategoriyalar/i))
+    await user.click(link(/Bo'limlar/i))
     expect(await screen.findByText('page:categories')).toBeInTheDocument()
 
     await user.click(link(/Foydalanuvchilar/i))
@@ -65,7 +65,7 @@ describe('Layout navigation never leaves a blank body', () => {
     const user = userEvent.setup()
     renderApp("/home")
 
-    await user.click(link(/Kategoriyalar/i))
+    await user.click(link(/Bo'limlar/i))
     await screen.findByText('page:categories')
     await user.click(link(/Mahsulotlar/i))
     await screen.findByText('page:products')

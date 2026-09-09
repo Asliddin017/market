@@ -7,6 +7,7 @@ import {
   useLoginEvents,
   setUserActive,
   cleanupInactiveUsers,
+  adminSetUserPassword,
 } from '../hooks/useData'
 import { toTime, formatDuration } from '../lib/utils'
 
@@ -55,9 +56,83 @@ function LogLine({ ev, showUser = false, now = 0 }) {
   )
 }
 
+/**
+ * "🔑 Parol" panel. Supabase keeps passwords only as bcrypt hashes, so the
+ * current password cannot be shown — the admin types a NEW one (eye toggle to
+ * see what was typed) and saves it; the user's other sessions are logged out.
+ */
+function PasswordPanel({ user, onDone, onFlash }) {
+  const [pwd, setPwd] = useState('')
+  const [show, setShow] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function save(e) {
+    e.preventDefault()
+    if (pwd.length < 6) {
+      setErr("Parol kamida 6 ta belgi bo'lsin.")
+      return
+    }
+    setBusy(true)
+    setErr('')
+    try {
+      await adminSetUserPassword(user.id, pwd)
+      onFlash?.(`"${user.username}" uchun yangi parol o'rnatildi: ${pwd}`)
+      onDone?.()
+    } catch (e2) {
+      console.error('[users] set password failed:', e2)
+      setErr(
+        String(e2?.message ?? '').includes('admin_set_user_password')
+          ? "Server funksiyasi yo'q — supabase/admin_password.sql ni ishga tushiring."
+          : "Parolni o'rnatib bo'lmadi.",
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="mt-3 space-y-2 border-t border-white/10 pt-3">
+      <p className="text-xs text-slate-400">
+        Login: <span className="font-mono font-semibold text-slate-100">{user.username}</span> · joriy parol
+        hech qayerda ochiq saqlanmaydi (faqat hash), shuning uchun ko'rsatib bo'lmaydi — yangisini yozing.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex-1 min-w-[12rem]">
+          <input
+            type={show ? 'text' : 'password'}
+            value={pwd}
+            onChange={(e) => setPwd(e.target.value)}
+            placeholder="Yangi parol (kamida 6 ta belgi)"
+            autoComplete="new-password"
+            className="input pr-11"
+          />
+          <button
+            type="button"
+            onClick={() => setShow((v) => !v)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-base hover:bg-white/10"
+            title={show ? 'Yashirish' : "Ko'rsatish"}
+            aria-label={show ? 'Parolni yashirish' : "Parolni ko'rsatish"}
+          >
+            {show ? '🙈' : '👁️'}
+          </button>
+        </div>
+        <button type="submit" disabled={busy} className="btn-primary px-3 py-2 text-xs">
+          {busy ? 'Saqlanmoqda…' : 'Saqlash'}
+        </button>
+        <button type="button" onClick={onDone} className="btn-ghost px-3 py-2 text-xs">
+          Bekor
+        </button>
+      </div>
+      {err && <p className="text-xs text-rose-300">{err}</p>}
+    </form>
+  )
+}
+
 function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0 }) {
   const [open, setOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
+  const [pwdOpen, setPwdOpen] = useState(false)
   const lastEvent = events[0] ?? null
   const [busyActive, setBusyActive] = useState(false)
 
@@ -136,7 +211,10 @@ function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0 }) {
               {user.isActive ? '● Faol' : '○ Faolsiz'}
             </span>
           </div>
-          <p className="text-xs text-slate-400">Ro'yxatdan o'tgan: {formatDateTime(user.createdAt)}</p>
+          <p className="text-xs text-slate-400">
+            Login: <span className="font-mono text-slate-200">{user.username}</span> · Ro'yxatdan o'tgan:{' '}
+            {formatDateTime(user.createdAt)}
+          </p>
           <p className="text-xs text-slate-400">
             {lastEvent
               ? `Oxirgi faollik: ${formatDateTime(lastEvent.createdAt)} · ${deviceLabel(lastEvent)}`
@@ -182,7 +260,16 @@ function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0 }) {
             {user.isActive ? '⛔ Faolsizlantirish' : '✅ Faollashtirish'}
           </button>
         )}
+        <button
+          onClick={() => setPwdOpen((v) => !v)}
+          className="btn-ghost px-3 py-1.5 text-xs"
+          title="Yangi parol o'rnatish"
+        >
+          🔑 Parol
+        </button>
       </div>
+
+      {pwdOpen && <PasswordPanel user={user} onDone={() => setPwdOpen(false)} onFlash={onFlash} />}
 
       {/* Per-user login log */}
       <AnimatePresence>

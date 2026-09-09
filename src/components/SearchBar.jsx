@@ -22,7 +22,7 @@ export default function SearchBar({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder || "Qidirish… (masalan: energtik, sut, olma)"}
+          placeholder={placeholder || 'Qidirish…'}
           className="w-full bg-transparent text-base text-slate-100 placeholder:text-slate-500 focus:outline-none"
         />
         {value && (

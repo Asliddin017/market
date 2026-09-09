@@ -5,6 +5,8 @@
 @layer base {
   :root {
     color-scheme: dark;
+    /* Top bar height — sticky page headers sit right under it. */
+    --nav-h: 3.75rem;
   }
 
   html,
@@ -102,6 +104,22 @@
     @apply bg-ink-900/90 border border-white/10 lg:bg-ink-900/70 lg:backdrop-blur-2xl;
   }
 
+  /* Loading placeholder blocks (product grid skeleton). */
+  .skeleton {
+    @apply animate-pulse bg-white/10;
+  }
+
+  /* Bottom toast, above the phone tab bar. */
+  .toast {
+    @apply fixed left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+  @media (min-width: 768px) {
+    .toast {
+      bottom: 1.5rem;
+    }
+  }
+
   /* Cheap one-shot fade/rise for list cards (replaces per-card framer-motion). */
   .card-enter {
     animation: card-enter 0.35s ease-out both;
@@ -164,5 +182,13 @@
   }
   .preserve-3d {
     transform-style: preserve-3d;
+  }
+  /* Horizontal strips: scrollable but without a visible scrollbar. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
