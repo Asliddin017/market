@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useThemeKey } from '../hooks/useThemeKey'
 
@@ -7,8 +8,20 @@ export default function Login() {
   const login = useAuthStore((s) => s.login)
   const register = useAuthStore((s) => s.register)
   const notice = useAuthStore((s) => s.notice)
+  const user = useAuthStore((s) => s.user)
+  const navigate = useNavigate()
+  const location = useLocation()
+  // Where to go after signing in: the page that sent us here (e.g. /cart or
+  // /orders), or the storefront. `reason` explains why login was needed.
+  const from = location.state?.from || '/products'
+  const reason = location.state?.reason || ''
 
-  const [mode, setMode] = useState('login') // 'login' | 'register'
+  // Already signed in (or just did): leave the login screen.
+  useEffect(() => {
+    if (user) navigate(from, { replace: true })
+  }, [user, from, navigate])
+
+  const [mode, setMode] = useState(location.state?.mode === 'register' ? 'register' : 'login') // 'login' | 'register'
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -186,8 +199,8 @@ export default function Login() {
                 )}
               </AnimatePresence>
 
-              {notice && !error && (
-                <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{notice}</p>
+              {(notice || reason) && !error && (
+                <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{notice || reason}</p>
               )}
               {error && (
                 <motion.p
@@ -220,6 +233,11 @@ export default function Login() {
                   </button>
                 </>
               )}
+            </p>
+            <p className="mt-3 text-center text-xs text-slate-400">
+              <Link to="/products" className="font-semibold text-slate-300 hover:underline">
+                ← Do'konni mehmon sifatida ko'rish
+              </Link>
             </p>
           </div>
         </motion.div>

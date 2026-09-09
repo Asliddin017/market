@@ -45,11 +45,15 @@ export default function App() {
     if (meta) meta.setAttribute('content', mode === 'light' ? '#f4f7f5' : '#022c22')
   }, [mode])
 
-  // Load the logged-in client's saved cart (clients only; clear otherwise).
+  // Cart: a guest keeps a local (browser) cart; a client loads their saved
+  // cart (merging the guest one on login); staff have no cart.
+  const userId = user?.id ?? null
   useEffect(() => {
     if (!ready) return
-    useCartStore.getState().loadForUser(can(role, 'useCart') ? user?.id ?? null : null)
-  }, [ready, user?.id, role])
+    const cart = useCartStore.getState()
+    if (!userId) cart.loadForUser(null, { guest: true })
+    else cart.loadForUser(can(role, 'useCart') ? userId : null)
+  }, [ready, userId, role])
 
   if (!isSupabaseConfigured) {
     return (
@@ -89,50 +93,50 @@ export default function App() {
       {/* App-wide lightweight animated background (CSS only). */}
       <CategoryBackground />
 
-      {!user ? (
-        // Not logged in -> login / registration screen only.
-        <Login />
-      ) : (
-        <Suspense fallback={<LoadingState />}>
+      {/*
+        Anyone can browse the storefront (products, categories, contacts)
+        without an account — like a marketplace. Signing in is only required
+        to place an order (and for staff pages); <Protected> sends a guest to
+        /login and brings them back afterwards.
+      */}
+      <Suspense fallback={<LoadingState />}>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route element={<Layout />}>
             {/* The shop opens on the product list for everyone; the welcome page lives at /home. */}
             <Route path="/" element={<Navigate to="/products" replace />} />
             <Route path="/home" element={<Home />} />
             <Route path="/products" element={<Products />} />
-            <Route
-              path="/rasm-qoshish"
-              element={can(role, 'manageProducts') ? <BulkImages /> : <Forbidden />}
-            />
             <Route path="/categories" element={<Categories />} />
-            <Route
-              path="/cart"
-              element={can(role, 'useCart') ? <CartPage /> : <Forbidden />}
-            />
-            <Route
-              path="/orders"
-              element={can(role, 'viewOrders') ? <Orders /> : <Forbidden />}
-            />
-            <Route
-              path="/orders/:id"
-              element={can(role, 'viewOrders') ? <OrderDetail /> : <Forbidden />}
-            />
-            <Route
-              path="/users"
-              element={can(role, 'manageUsers') ? <Users /> : <Forbidden />}
-            />
             <Route path="/contact" element={<Contact />} />
-            <Route
-              path="/statistika"
-              element={can(role, 'viewStats') ? <Statistika /> : <Forbidden />}
-            />
+            {/* Guests can fill a cart; the checkout button itself asks them to sign in. */}
+            <Route path="/cart" element={can(role, 'useCart') ? <CartPage /> : <Forbidden />} />
+            <Route path="/rasm-qoshish" element={<Protected cap="manageProducts"><BulkImages /></Protected>} />
+            <Route path="/orders" element={<Protected cap="viewOrders"><Orders /></Protected>} />
+            <Route path="/orders/:id" element={<Protected cap="viewOrders"><OrderDetail /></Protected>} />
+            <Route path="/users" element={<Protected cap="manageUsers"><Users /></Protected>} />
+            <Route path="/statistika" element={<Protected cap="viewStats"><Statistika /></Protected>} />
             <Route path="*" element={<Navigate to="/products" replace />} />
           </Route>
         </Routes>
-        </Suspense>
-      )}
+      </Suspense>
     </>
   )
+}
+
+/**
+ * Signed-in + capability gate. A guest is sent to /login (and returned here
+ * afterwards); a signed-in user without the capability sees "Ruxsat yo'q".
+ */
+function Protected({ cap, children }) {
+  const user = useAuthStore((s) => s.user)
+  const role = useAuthStore((s) => s.role)
+  const location = useLocation()
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />
+  }
+  if (cap && !can(role, cap)) return <Forbidden />
+  return children
 }
 
 function Forbidden() {

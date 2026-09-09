@@ -229,3 +229,115 @@ describe('cart persistence ordering (per-product write queue)', () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------
+// Guest (not logged in) cart: lives in localStorage, merged into the account's
+// Supabase cart on login.
+// ---------------------------------------------------------------------------
+import { mergeCarts, GUEST_CART_KEY } from './cartStore'
+
+describe('mergeCarts (pure)', () => {
+  it('sums quantities for shared products and appends guest-only lines', () => {
+    const server = [{ id: 'a', qty: 2, price: 1000, customPrice: 900 }]
+    const guest = [
+      { id: 'a', qty: 3, price: 1000, customPrice: null },
+      { id: 'b', qty: 1, price: 1500 },
+    ]
+    const merged = mergeCarts(server, guest)
+    expect(merged).toHaveLength(2)
+    // Server line wins for everything but quantity.
+    expect(merged.find((i) => i.id === 'a')).toMatchObject({ qty: 5, customPrice: 900 })
+    expect(merged.find((i) => i.id === 'b')).toMatchObject({ qty: 1 })
+  })
+
+  it('tolerates empty inputs', () => {
+    expect(mergeCarts([], [])).toEqual([])
+    expect(mergeCarts(undefined, [{ id: 'a', qty: 1 }])).toHaveLength(1)
+  })
+})
+
+describe('guest cart (localStorage)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    useCartStore.setState({ clientId: null, guest: false, items: [], updatedAt: null, loaded: false })
+  })
+
+  it('loadForUser(null, {guest:true}) restores the saved guest cart', async () => {
+    localStorage.setItem(GUEST_CART_KEY, JSON.stringify([{ ...A, qty: 2 }]))
+    await useCartStore.getState().loadForUser(null, { guest: true })
+    const s = useCartStore.getState()
+    expect(s.guest).toBe(true)
+    expect(s.loaded).toBe(true)
+    expect(s.items).toHaveLength(1)
+    expect(s.items[0]).toMatchObject({ id: 'a', qty: 2 })
+  })
+
+  it('guest mutations persist to localStorage (no Supabase)', async () => {
+    const { supabase } = await import('../lib/supabase')
+    const from = vi.spyOn(supabase, 'from')
+    try {
+      await useCartStore.getState().loadForUser(null, { guest: true })
+      const s = useCartStore.getState()
+      s.addItem(A, 1)
+      s.increment('a')
+      s.addItem(B, 1)
+      s.removeItem('b')
+      const saved = JSON.parse(localStorage.getItem(GUEST_CART_KEY))
+      expect(saved).toHaveLength(1)
+      expect(saved[0]).toMatchObject({ id: 'a', qty: 2 })
+      expect(from).not.toHaveBeenCalled()
+      await s.clear()
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull()
+    } finally {
+      from.mockRestore()
+    }
+  })
+
+  it('a non-guest null load (staff) ignores the saved guest cart', async () => {
+    localStorage.setItem(GUEST_CART_KEY, JSON.stringify([{ ...A, qty: 2 }]))
+    await useCartStore.getState().loadForUser(null)
+    expect(useCartStore.getState().items).toEqual([])
+    expect(useCartStore.getState().guest).toBe(false)
+  })
+
+  it('logging in merges the guest cart into the account cart and clears localStorage', async () => {
+    const useData = await import('../hooks/useData')
+    const getUserCart = vi
+      .spyOn(useData, 'getUserCart')
+      .mockResolvedValue({ items: [{ ...A, qty: 1, customPrice: null, sellMode: null }] })
+    const { supabase } = await import('../lib/supabase')
+    const upserts = []
+    const from = vi.spyOn(supabase, 'from').mockImplementation(() => ({
+      upsert: (row) => {
+        upserts.push(row)
+        return Promise.resolve({ error: null })
+      },
+    }))
+    try {
+      localStorage.setItem(
+        GUEST_CART_KEY,
+        JSON.stringify([
+          { ...A, qty: 2 },
+          { ...B, qty: 1 },
+        ]),
+      )
+      await useCartStore.getState().loadForUser('u1')
+      await new Promise((r) => setTimeout(r, 0))
+      const s = useCartStore.getState()
+      expect(s.guest).toBe(false)
+      expect(s.clientId).toBe('u1')
+      expect(s.items.find((i) => i.id === 'a').qty).toBe(3)
+      expect(s.items.find((i) => i.id === 'b').qty).toBe(1)
+      // Merged lines were written back to Supabase.
+      expect(upserts.map((r) => [r.product_id, r.quantity]).sort()).toEqual([
+        ['a', 3],
+        ['b', 1],
+      ])
+      expect(localStorage.getItem(GUEST_CART_KEY)).toBeNull()
+      expect(getUserCart).toHaveBeenCalledWith('u1')
+    } finally {
+      from.mockRestore()
+      getUserCart.mockRestore()
+    }
+  })
+})

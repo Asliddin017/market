@@ -29,6 +29,7 @@ export default function Home() {
     categoriesQuery.refetch?.()
   }
   const role = useAuthStore((s) => s.role)
+  const user = useAuthStore((s) => s.user)
   const addToCart = useCartStore((s) => s.addItem)
   const meta = ROLE_META[role]
 
@@ -93,7 +94,14 @@ export default function Home() {
         <div className="absolute -bottom-16 -left-10 h-48 w-48 rounded-full bg-gold-500/10 blur-3xl" />
         <div className="relative">
           <span className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-xs font-semibold text-brand-200">
-            {meta?.icon} {meta?.label} sifatida kirdingiz
+            {user ? (
+              <>{meta?.icon} {meta?.label} sifatida kirdingiz</>
+            ) : (
+              <>
+                👋 Mehmon sifatida ko'rmoqdasiz ·{' '}
+                <Link to="/login" className="underline">Kirish</Link>
+              </>
+            )}
           </span>
           <h1 className="mt-4 font-display text-3xl font-extrabold sm:text-5xl">
             Xush kelibsiz <span className="bg-gradient-to-r from-brand-300 to-gold-400 bg-clip-text text-transparent">ASL ZIYO</span> marketiga

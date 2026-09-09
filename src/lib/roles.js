@@ -9,6 +9,9 @@ export const ROLES = {
   ADMIN: 'admin',
   SELLER: 'seller',
   CLIENT: 'client',
+  // Not logged in. Browses the storefront (prices, categories, contacts) and
+  // keeps a local cart; must sign in / register to place an order.
+  GUEST: 'guest',
 }
 
 export const ROLE_META = {
@@ -29,6 +32,12 @@ export const ROLE_META = {
     tagline: "Mahsulotlarni ko'rish va savatchaga qo'shish",
     icon: '🛒',
     accent: 'from-gold-400 to-gold-600',
+  },
+  [ROLES.GUEST]: {
+    label: 'Mehmon',
+    tagline: "Narxlarni ko'rish — buyurtma uchun kirish kerak",
+    icon: '👋',
+    accent: 'from-slate-400 to-slate-600',
   },
 }
 
@@ -74,6 +83,24 @@ const PERMISSIONS = {
     manageContacts: false,
     viewStats: false,
   },
+  [ROLES.GUEST]: {
+    manageProducts: false,
+    deleteProducts: false,
+    manageCategories: false,
+    deleteCategories: false,
+    manageUsers: false,
+    useCart: true, // local (browser) cart; checkout requires login
+    viewOrders: false,
+    manageOrders: false,
+    deleteOrders: false,
+    manageContacts: false,
+    viewStats: false,
+  },
+}
+
+/** True for a visitor without an account (or before any session resolved). */
+export function isGuest(role) {
+  return !role || role === ROLES.GUEST
 }
 
 export function can(role, capability) {

@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore, selectCount } from '../store/cartStore'
@@ -107,15 +107,24 @@ export default function Navbar() {
             >
               {mode === 'light' ? '🌙' : '☀️'}
             </button>
-            <span className="flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-semibold text-slate-200">
-              <span>{meta?.icon}</span>
-              <span className="max-w-[7rem] truncate">{user?.username}</span>
-              <span className="hidden text-slate-400 sm:inline">· {meta?.label}</span>
-            </span>
-            <button onClick={handleLogout} className="btn-ghost px-3 py-2 text-xs" title="Chiqish">
-              <span className="sm:hidden">⎋</span>
-              <span className="hidden sm:inline">Chiqish</span>
-            </button>
+            {user ? (
+              <>
+                <span className="flex items-center gap-1.5 rounded-full glass px-3 py-1.5 text-xs font-semibold text-slate-200">
+                  <span>{meta?.icon}</span>
+                  <span className="max-w-[7rem] truncate">{user.username}</span>
+                  <span className="hidden text-slate-400 sm:inline">· {meta?.label}</span>
+                </span>
+                <button onClick={handleLogout} className="btn-ghost px-3 py-2 text-xs" title="Chiqish">
+                  <span className="sm:hidden">⎋</span>
+                  <span className="hidden sm:inline">Chiqish</span>
+                </button>
+              </>
+            ) : (
+              // Guest: browsing without an account — sign in only to order.
+              <Link to="/login" className="btn-primary px-3 py-2 text-xs" title="Kirish yoki ro'yxatdan o'tish">
+                🔐 Kirish
+              </Link>
+            )}
           </div>
         </div>
       </header>

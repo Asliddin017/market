@@ -272,39 +272,61 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Mandatory contact details for pickup. */}
-              <div className="space-y-2 border-t border-white/10 pt-3">
-                <div>
-                  <label className="label" htmlFor="checkout-name">Ism *</label>
-                  <input
-                    id="checkout-name"
-                    className="input"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ismingiz"
-                    autoComplete="name"
-                  />
-                </div>
-                <div>
-                  <label className="label" htmlFor="checkout-phone">Telefon raqami *</label>
-                  <input
-                    id="checkout-phone"
-                    className="input"
-                    type="tel"
-                    inputMode="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+998 90 123 45 67"
-                    autoComplete="tel"
-                  />
-                </div>
-                {contactError && <p className="text-xs text-rose-300">{contactError}</p>}
-              </div>
+              {userId ? (
+                <>
+                  {/* Mandatory contact details for pickup. */}
+                  <div className="space-y-2 border-t border-white/10 pt-3">
+                    <div>
+                      <label className="label" htmlFor="checkout-name">Ism *</label>
+                      <input
+                        id="checkout-name"
+                        className="input"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Ismingiz"
+                        autoComplete="name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label" htmlFor="checkout-phone">Telefon raqami *</label>
+                      <input
+                        id="checkout-phone"
+                        className="input"
+                        type="tel"
+                        inputMode="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+998 90 123 45 67"
+                        autoComplete="tel"
+                      />
+                    </div>
+                    {contactError && <p className="text-xs text-rose-300">{contactError}</p>}
+                  </div>
 
-              {placeError && <p className="text-xs text-rose-300">{placeError}</p>}
-              <button onClick={checkout} disabled={placing} className="btn-gold w-full">
-                {placing ? 'Yuborilmoqda…' : '✓ Buyurtma berish'}
-              </button>
+                  {placeError && <p className="text-xs text-rose-300">{placeError}</p>}
+                  <button onClick={checkout} disabled={placing} className="btn-gold w-full">
+                    {placing ? 'Yuborilmoqda…' : '✓ Buyurtma berish'}
+                  </button>
+                </>
+              ) : (
+                // Guest: the cart is kept in this browser; ordering needs an account.
+                <div className="space-y-3 border-t border-white/10 pt-3">
+                  <p className="text-xs text-slate-400">
+                    Buyurtma berish uchun hisobingizga kiring yoki ro'yxatdan o'ting.
+                    Savatchangiz saqlanib qoladi.
+                  </p>
+                  <button
+                    onClick={() =>
+                      navigate('/login', {
+                        state: { from: '/cart', reason: "Buyurtma berish uchun kiring yoki ro'yxatdan o'ting." },
+                      })
+                    }
+                    className="btn-gold w-full"
+                  >
+                    🔐 Kirish / Ro'yxatdan o'tish
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -87,4 +87,13 @@ describe('Products page role gating', () => {
     expect(screen.queryByText('🗑️')).not.toBeInTheDocument()
     expect(screen.getAllByText(/Savatga/i).length).toBeGreaterThan(0)
   })
+
+  it('guest (not signed in) sees prices and add-to-cart, no staff controls', () => {
+    useAuthStore.setState({ user: null, role: 'guest' })
+    render(<Products />)
+    expect(screen.queryByText(/Yangi mahsulot/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('🗑️')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/Savatga/i).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Red Bull/)).toBeInTheDocument()
+  })
 })

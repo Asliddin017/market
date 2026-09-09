@@ -11,6 +11,46 @@ import { SELL_MODE, canEditPrice, lineTotal as lineTotalImpl, total as cartTotal
 // admins can read any client's cart via getUserCart (Users page).
 // ---------------------------------------------------------------------------
 
+// ---- Guest cart (not logged in) -------------------------------------------
+// A visitor without an account keeps their cart in localStorage so they can
+// browse + collect items freely (like Uzum); on login the saved lines are
+// merged into the account's Supabase cart and the local copy is dropped.
+export const GUEST_CART_KEY = 'asl-ziyo:guest-cart'
+
+function readGuestCart() {
+  try {
+    const raw = localStorage.getItem(GUEST_CART_KEY)
+    const arr = raw ? JSON.parse(raw) : []
+    return Array.isArray(arr) ? arr.filter((i) => i && i.id != null && Number(i.qty) > 0) : []
+  } catch {
+    return []
+  }
+}
+
+function writeGuestCart(items) {
+  try {
+    if (items.length) localStorage.setItem(GUEST_CART_KEY, JSON.stringify(items))
+    else localStorage.removeItem(GUEST_CART_KEY)
+  } catch {
+    /* localStorage unavailable (private mode) — cart lives in memory only */
+  }
+}
+
+/**
+ * Merge a guest cart into an account cart (pure). Shared products add up
+ * their quantities (the account line keeps its price/mode settings); products
+ * only in the guest cart are appended as-is.
+ */
+export function mergeCarts(serverItems = [], guestItems = []) {
+  const out = (serverItems ?? []).map((i) => ({ ...i }))
+  for (const g of guestItems ?? []) {
+    const hit = out.find((i) => i.id === g.id)
+    if (hit) hit.qty = (hit.qty ?? 0) + (g.qty ?? 0)
+    else out.push({ ...g })
+  }
+  return out
+}
+
 // Per-product write queue. Every Supabase write for one product runs strictly
 // AFTER the previous one for that product finished, so a fast "+ + +" (or a
 // quick edit then remove) can never land out of order and leave a stale
@@ -28,21 +68,44 @@ function enqueue(productId, task) {
 
 export const useCartStore = create((set, get) => ({
   clientId: null,
+  guest: false, // true = local (localStorage) cart of a visitor without an account
   items: [], // [{ id, name, price, unit, image, qty }]
   updatedAt: null,
   loaded: false, // first load finished (success OR error)?
   error: null, // set when the saved cart failed to load
 
-  /** Load the given client's saved cart into memory (null clears it). */
-  loadForUser: async (clientId) => {
+  /**
+   * Load the given client's saved cart into memory. `null` clears it, unless
+   * `guest` is set — then the visitor's localStorage cart is loaded instead.
+   * Logging in (a real clientId) merges any guest cart into the account cart.
+   */
+  loadForUser: async (clientId, { guest = false } = {}) => {
     if (clientId == null) {
-      set({ clientId: null, items: [], updatedAt: null, loaded: true, error: null })
+      const items = guest ? readGuestCart() : []
+      set({
+        clientId: null,
+        guest,
+        items,
+        updatedAt: items.length ? new Date().toISOString() : null,
+        loaded: true,
+        error: null,
+      })
       return
     }
-    set({ clientId, loaded: false, error: null })
+    set({ clientId, guest: false, loaded: false, error: null })
     try {
-      const { items } = await getUserCart(clientId)
+      const { items: saved } = await getUserCart(clientId)
+      const guestItems = readGuestCart()
+      const items = mergeCarts(saved, guestItems)
       set({ clientId, items, updatedAt: new Date().toISOString(), loaded: true, error: null })
+      if (guestItems.length) {
+        // Persist every line the guest cart touched, then forget the local copy.
+        for (const g of guestItems) {
+          const line = items.find((i) => i.id === g.id)
+          if (line) get()._persistQty(g.id, line.qty)
+        }
+        writeGuestCart([])
+      }
     } catch (err) {
       console.error('[cart] load failed:', err)
       // Keep loaded=false semantics distinct from empty: surface an error so the
@@ -56,8 +119,11 @@ export const useCartStore = create((set, get) => ({
 
   /** Upsert one product row (quantity + custom price + sell mode) in Supabase. */
   _persistQty: (productId, quantity) => {
-    const { clientId, items } = get()
-    if (clientId == null) return
+    const { clientId, items, guest } = get()
+    if (clientId == null) {
+      if (guest) writeGuestCart(items)
+      return
+    }
     set({ updatedAt: new Date().toISOString() })
     const item = items.find((i) => i.id === productId)
     const row = {
@@ -79,8 +145,11 @@ export const useCartStore = create((set, get) => ({
   },
 
   _persistDelete: (productId) => {
-    const { clientId } = get()
-    if (clientId == null) return
+    const { clientId, guest, items } = get()
+    if (clientId == null) {
+      if (guest) writeGuestCart(items)
+      return
+    }
     set({ updatedAt: new Date().toISOString() })
     return enqueue(productId, async () => {
       if (get().clientId !== clientId) return
@@ -180,9 +249,12 @@ export const useCartStore = create((set, get) => ({
   },
 
   clear: async () => {
-    const { clientId } = get()
+    const { clientId, guest } = get()
     set({ items: [], updatedAt: new Date().toISOString() })
-    if (clientId == null) return
+    if (clientId == null) {
+      if (guest) writeGuestCart([])
+      return
+    }
     // Let in-flight per-line writes finish first, otherwise a queued upsert
     // could re-create a row right after we wiped the cart.
     await Promise.all([...persistQueues.values()])

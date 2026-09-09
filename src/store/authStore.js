@@ -114,7 +114,7 @@ function translate(error) {
 
 export const useAuthStore = create((set, get) => ({
   user: null, // { id, username, role } | null
-  role: null, // mirror of user.role | null
+  role: ROLES.GUEST, // mirror of user.role; 'guest' while nobody is signed in
   ready: false, // initial session resolved?
   notice: '', // message shown on the login screen (e.g. account deactivated)
 
@@ -143,7 +143,7 @@ export const useAuthStore = create((set, get) => ({
   _applySession: async (session) => {
     const authUser = session?.user
     if (!authUser) {
-      set({ user: null, role: null })
+      set({ user: null, role: ROLES.GUEST })
       return
     }
     const { data, error } = await supabase
@@ -155,7 +155,7 @@ export const useAuthStore = create((set, get) => ({
       // Deactivated by an admin: sign out and explain on the login screen.
       set({
         user: null,
-        role: null,
+        role: ROLES.GUEST,
         notice: "Hisobingiz administrator tomonidan faolsizlantirilgan. Do'kon bilan bog'laning.",
       })
       supabase.auth.signOut().catch(() => {})
@@ -190,6 +190,9 @@ export const useAuthStore = create((set, get) => ({
     } = await supabase.auth.getSession()
     await get()._applySession(session)
     rememberCredential(session, password)
+    // Lists cached while browsing as a guest were filtered for the guest role.
+    const { clearLiveCache } = await import('../hooks/useData')
+    clearLiveCache()
     return { ok: true }
   },
 
@@ -217,6 +220,8 @@ export const useAuthStore = create((set, get) => ({
       return { ok: false, error: "Hisob yaratildi, lekin tasdiqlash kerak. Admin Supabase'da email tasdiqlashni o'chirsin." }
     }
     rememberCredential(session, password)
+    const { clearLiveCache } = await import('../hooks/useData')
+    clearLiveCache()
     return { ok: true }
   },
 
@@ -230,7 +235,7 @@ export const useAuthStore = create((set, get) => ({
       /* ignore */
     }
     await supabase.auth.signOut()
-    set({ user: null, role: null })
+    set({ user: null, role: ROLES.GUEST })
     // Cached lists belong to the account that just left.
     const { clearLiveCache } = await import('../hooks/useData')
     clearLiveCache()
