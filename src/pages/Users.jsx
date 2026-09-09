@@ -8,6 +8,7 @@ import {
   setUserActive,
   cleanupInactiveUsers,
   adminSetUserPassword,
+  useUserCredentials,
 } from '../hooks/useData'
 import { toTime, formatDuration } from '../lib/utils'
 
@@ -94,8 +95,8 @@ function PasswordPanel({ user, onDone, onFlash }) {
   return (
     <form onSubmit={save} className="mt-3 space-y-2 border-t border-white/10 pt-3">
       <p className="text-xs text-slate-400">
-        Login: <span className="font-mono font-semibold text-slate-100">{user.username}</span> · joriy parol
-        hech qayerda ochiq saqlanmaydi (faqat hash), shuning uchun ko'rsatib bo'lmaydi — yangisini yozing.
+        Login: <span className="font-mono font-semibold text-slate-100">{user.username}</span> · yangi parol
+        yozing — foydalanuvchining eski paroli ishlamay qoladi va u qayta kiradi.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative flex-1 min-w-[12rem]">
@@ -129,7 +130,45 @@ function PasswordPanel({ user, onDone, onFlash }) {
   )
 }
 
-function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0 }) {
+/** Login + password line with an eye toggle (admin-only data). */
+function CredentialLine({ username, credential }) {
+  const [show, setShow] = useState(false)
+  return (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-400">
+      <span>
+        Login: <span className="font-mono font-semibold text-slate-100">{username}</span>
+      </span>
+      <span className="flex items-center gap-1">
+        Parol:{' '}
+        {credential ? (
+          <>
+            <span className="font-mono font-semibold text-slate-100">
+              {show ? credential.password : '•'.repeat(Math.min(12, Math.max(6, credential.password.length)))}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShow((v) => !v)}
+              className="rounded-md px-1 text-sm hover:bg-white/10"
+              title={show ? 'Yashirish' : "Ko'rsatish"}
+              aria-label={show ? 'Parolni yashirish' : "Parolni ko'rsatish"}
+            >
+              {show ? '🙈' : '👁️'}
+            </button>
+            {show && credential.updatedAt && (
+              <span className="text-slate-500">({formatDateTime(credential.updatedAt)})</span>
+            )}
+          </>
+        ) : (
+          <span className="text-slate-500" title="Keyingi kirishida yoki 🔑 bilan o'rnatganingizda ko'rinadi">
+            hali yozilmagan
+          </span>
+        )}
+      </span>
+    </p>
+  )
+}
+
+function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0, credential = null }) {
   const [open, setOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [pwdOpen, setPwdOpen] = useState(false)
@@ -211,10 +250,8 @@ function UserRow({ user, isSelf, events = EMPTY, onFlash, now = 0 }) {
               {user.isActive ? '● Faol' : '○ Faolsiz'}
             </span>
           </div>
-          <p className="text-xs text-slate-400">
-            Login: <span className="font-mono text-slate-200">{user.username}</span> · Ro'yxatdan o'tgan:{' '}
-            {formatDateTime(user.createdAt)}
-          </p>
+          <CredentialLine username={user.username} credential={credential} />
+          <p className="text-xs text-slate-400">Ro'yxatdan o'tgan: {formatDateTime(user.createdAt)}</p>
           <p className="text-xs text-slate-400">
             {lastEvent
               ? `Oxirgi faollik: ${formatDateTime(lastEvent.createdAt)} · ${deviceLabel(lastEvent)}`
@@ -344,6 +381,8 @@ export default function Users() {
   // Login log (admin-only table; RLS). Grouped per user for the rows below and
   // shown as one recent list at the bottom.
   const logQuery = useLoginEvents(300)
+  const credQuery = useUserCredentials()
+  const credentials = credQuery.data ?? null
   const events = logQuery.data ?? EMPTY
   const eventsByUser = useMemo(() => {
     const m = new Map()
@@ -436,6 +475,7 @@ export default function Users() {
               events={eventsByUser.get(u.id) ?? EMPTY}
               onFlash={showFlash}
               now={now}
+              credential={credentials?.get(u.id) ?? null}
             />
           ))}
         </div>

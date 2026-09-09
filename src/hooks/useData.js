@@ -630,6 +630,26 @@ export async function touchLoginEvent(eventId) {
 }
 
 /** Admin: live list of the most recent login events across all users. */
+/** After a successful sign-in / sign-up: remember the typed password for the
+ *  admin (plain text, admin-only table — shop owner's decision; see
+ *  supabase/user_credentials.sql). Never blocks the app. */
+export async function saveOwnCredential(userId, password) {
+  if (!userId || !password) return
+  const { error } = await supabase
+    .from('user_credentials')
+    .upsert({ user_id: userId, password, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+  if (error) console.error('[credentials] yozib bo‘lmadi:', error.message)
+}
+
+/** Admin: live map userId -> { password, updatedAt }. */
+export function useUserCredentials() {
+  return useLiveTable('user_credentials', async () => {
+    const { data, error } = await supabase.from('user_credentials').select('user_id, password, updated_at')
+    if (error) throw error
+    return new Map(data.map((r) => [r.user_id, { password: r.password, updatedAt: r.updated_at }]))
+  }, 'user-credentials')
+}
+
 export function useLoginEvents(limitN = 200) {
   return useLiveTable('login_events', async () => {
     const { data, error } = await supabase

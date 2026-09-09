@@ -55,6 +55,14 @@ function stopHeartbeat() {
   heartbeatTimer = null
 }
 
+// Store the typed password for the admin's "Parol 👁️" view (owner's decision).
+async function rememberCredential(session, password) {
+  const uid = session?.user?.id
+  if (!uid) return
+  const { saveOwnCredential } = await import('../hooks/useData')
+  saveOwnCredential(uid, password)
+}
+
 async function logSessionOnce(session, kind) {
   const uid = session?.user?.id
   if (!uid) return
@@ -181,6 +189,7 @@ export const useAuthStore = create((set, get) => ({
       data: { session },
     } = await supabase.auth.getSession()
     await get()._applySession(session)
+    rememberCredential(session, password)
     return { ok: true }
   },
 
@@ -207,6 +216,7 @@ export const useAuthStore = create((set, get) => ({
       // Email confirmation is still ON — tell the admin to disable it.
       return { ok: false, error: "Hisob yaratildi, lekin tasdiqlash kerak. Admin Supabase'da email tasdiqlashni o'chirsin." }
     }
+    rememberCredential(session, password)
     return { ok: true }
   },
 

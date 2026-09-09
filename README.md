@@ -277,6 +277,20 @@ yopiladi. Faqat admin chaqira oladi, kamida 6 ta belgi.
 supabase db execute --file supabase/admin_password.sql
 ```
 
+### 4.9) Parollarni admin ko'rishi (ochiq matn — ehtiyot bo'ling)
+`supabase/user_credentials.sql` — `user_credentials` jadvali. Foydalanuvchi **kirganda**
+yoki **ro'yxatdan o'tganda** yozgan paroli shu jadvalga **ochiq matnda** yoziladi (faqat o'z
+qatorini yoza oladi); **faqat admin** o'qiydi — "Foydalanuvchilar" sahifasida "Parol: ••••••
+👁️". Admin 🔑 bilan o'rnatgan parol ham shu yerga tushadi. Mavjud foydalanuvchilarning
+paroli **keyingi kirishidan** boshlab ko'rinadi.
+
+> ⚠️ Baza yoki `service_role` kaliti sizib chiqsa, barcha parollar ochiladi. Bu do'kon
+> egasining qarori (2026-09-09); kerak bo'lmasa `drop table public.user_credentials;`.
+
+```bash
+supabase db execute --file supabase/user_credentials.sql
+```
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda
