@@ -251,6 +251,21 @@ kompyuter), OS, brauzer, ekran o'lchami, til, xom user-agent. Faqat **admin** o'
 supabase db execute --file supabase/login_events.sql
 ```
 
+### 4.7) Foydalanuvchi statusi, IP, avtomatik tozalash
+`supabase/update_2026_09b.sql` ni **`login_events.sql` dan keyin** ishga tushiring. U:
+- `profiles.is_active` — admin hisobni **faolsizlantiradi**: u darhol tizimdan chiqariladi,
+  hech qanday ruxsati qolmaydi ("Foydalanuvchilar" sahifasidagi ⛔ tugma);
+- `profiles.last_seen_at` — oxirgi faollik (login logidan trigger orqali);
+- `login_events.ip` — **IP manzil** so'rov sarlavhasidan (`x-forwarded-for`) server
+  tomonda yoziladi, admin loglarda ko'radi;
+- `cleanup_inactive_users(30)` — **faolsiz** va 30 kun kirmagan hisoblarni o'chiradi.
+  Admin "Foydalanuvchilar" sahifasini ochganda chaqiriladi; `pg_cron` bo'lsa har kuni
+  03:00 da ham ishlaydi. Faol hisoblarga tegmaydi.
+
+```bash
+supabase db execute --file supabase/update_2026_09b.sql
+```
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda

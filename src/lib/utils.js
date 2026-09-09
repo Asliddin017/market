@@ -40,6 +40,21 @@ export function formatSom(value) {
   return `${n.toLocaleString('ru-RU').replace(/,/g, ' ')} so'm`
 }
 
+/**
+ * Human duration in Uzbek, e.g. 45000 -> "1 daq", 3.7e6 -> "1 soat 2 daq",
+ * 2 days -> "2 kun 3 soat". Anything under a minute reads "< 1 daq".
+ */
+export function formatDuration(ms) {
+  const total = Math.max(0, Math.floor((Number(ms) || 0) / 60000)) // minutes
+  if (total < 1) return '< 1 daq'
+  const days = Math.floor(total / 1440)
+  const hours = Math.floor((total % 1440) / 60)
+  const mins = total % 60
+  if (days > 0) return hours > 0 ? `${days} kun ${hours} soat` : `${days} kun`
+  if (hours > 0) return mins > 0 ? `${hours} soat ${mins} daq` : `${hours} soat`
+  return `${mins} daq`
+}
+
 /** Parse any stored timestamp (ISO string or epoch ms) to milliseconds. */
 export function toTime(value) {
   if (value == null) return 0

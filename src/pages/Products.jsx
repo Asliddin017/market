@@ -7,7 +7,7 @@ import { useCartStore } from '../store/cartStore'
 import { useUiStore } from '../store/uiStore'
 import { can, ROLES } from '../lib/roles'
 import { isStaff } from '../lib/visibility'
-import { smartSearch } from '../lib/search'
+import { smartSearch, exactSearch } from '../lib/search'
 import { resolveThemeKey } from '../lib/categoryThemes'
 import SearchBar from '../components/SearchBar'
 import ProductCard from '../components/ProductCard'
@@ -49,6 +49,8 @@ export default function Products() {
   const setActiveCat = (id) => setSearchParams(id ? { cat: id } : {}, { replace: true })
 
   const [query, setQuery] = useState('')
+  // "Aniq qidiruv": exact substring match instead of typo-tolerant fuzzy search.
+  const [exact, setExact] = useState(false)
   // How many rows are revealed, remembered together with the filter it was
   // revealed for — a new query/category naturally starts at PAGE_SIZE again.
   const [reveal, setReveal] = useState({ key: '', n: PAGE_SIZE })
@@ -73,12 +75,12 @@ export default function Products() {
 
   // Smart fuzzy search (relevance-sorted) + category-chip filter.
   const results = useMemo(() => {
-    let list = smartSearch(deferredQuery, products, categories)
+    let list = (exact ? exactSearch : smartSearch)(deferredQuery, products, categories)
     if (activeCat != null) list = list.filter((p) => p.categoryId === activeCat)
     return list
-  }, [deferredQuery, products, categories, activeCat])
+  }, [deferredQuery, products, categories, activeCat, exact])
 
-  const resultsKey = `${deferredQuery}|${activeCat ?? ''}`
+  const resultsKey = `${deferredQuery}|${activeCat ?? ''}|${exact ? 1 : 0}`
   const visible = reveal.key === resultsKey ? reveal.n : PAGE_SIZE
   const showMore = () =>
     setReveal((r) => ({ key: resultsKey, n: (r.key === resultsKey ? r.n : PAGE_SIZE) + PAGE_SIZE }))
@@ -141,7 +143,13 @@ export default function Products() {
         </div>
       </div>
 
-      <SearchBar value={query} onChange={setQuery} resultCount={results.length} />
+      <SearchBar
+        value={query}
+        onChange={setQuery}
+        resultCount={results.length}
+        exact={exact}
+        onToggleExact={() => setExact((v) => !v)}
+      />
 
       {/* Category filter chips */}
       <div className="flex flex-wrap gap-2">

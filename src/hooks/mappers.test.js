@@ -87,7 +87,15 @@ describe('row <-> app mappers (snake_case -> camelCase)', () => {
 
   it('mapProfile maps username/role/createdAt', () => {
     const row = { id: 'u1', username: 'asliddin', role: 'admin', created_at: 't' }
-    expect(mapProfile(row)).toEqual({ id: 'u1', username: 'asliddin', role: 'admin', createdAt: 't' })
+    expect(mapProfile(row)).toEqual({
+      id: 'u1',
+      username: 'asliddin',
+      role: 'admin',
+      isActive: true, // default when the column is absent
+      lastSeenAt: null,
+      createdAt: 't',
+    })
+    expect(mapProfile({ ...row, is_active: false, last_seen_at: 's' })).toMatchObject({ isActive: false, lastSeenAt: 's' })
   })
 
   it('mapOrderItem maps snapshot columns to camelCase', () => {

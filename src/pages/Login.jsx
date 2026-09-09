@@ -6,6 +6,7 @@ import { useThemeKey } from '../hooks/useThemeKey'
 export default function Login() {
   const login = useAuthStore((s) => s.login)
   const register = useAuthStore((s) => s.register)
+  const notice = useAuthStore((s) => s.notice)
 
   const [mode, setMode] = useState('login') // 'login' | 'register'
   const [username, setUsername] = useState('')
@@ -185,6 +186,9 @@ export default function Login() {
                 )}
               </AnimatePresence>
 
+              {notice && !error && (
+                <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{notice}</p>
+              )}
               {error && (
                 <motion.p
                   initial={{ opacity: 0 }}

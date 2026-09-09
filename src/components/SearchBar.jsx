@@ -1,7 +1,15 @@
 import { motion } from 'framer-motion'
 
 /** Real-time search input. Parent owns the value and runs smartSearch on change. */
-export default function SearchBar({ value, onChange, resultCount, placeholder, resultNoun = 'natija' }) {
+export default function SearchBar({
+  value,
+  onChange,
+  resultCount,
+  placeholder,
+  resultNoun = 'natija',
+  exact,
+  onToggleExact,
+}) {
   return (
     <div className="relative">
       <motion.div
@@ -26,6 +34,17 @@ export default function SearchBar({ value, onChange, resultCount, placeholder, r
             ✕
           </button>
         )}
+        {onToggleExact && (
+          <button
+            type="button"
+            onClick={onToggleExact}
+            aria-pressed={Boolean(exact)}
+            title={exact ? 'Aniq qidiruv yoqilgan: faqat yozganingizni o‘z ichiga olganlar chiqadi' : 'Aniq qidiruv: xatosiz, yozganingizni aynan qidiradi'}
+            className={`chip shrink-0 whitespace-nowrap ${exact ? 'border-brand-400/60 bg-brand-500/15 text-brand-200' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'}`}
+          >
+            🎯 Aniq qidiruv
+          </button>
+        )}
       </motion.div>
       {value && (
         <motion.p
@@ -33,7 +52,7 @@ export default function SearchBar({ value, onChange, resultCount, placeholder, r
           animate={{ opacity: 1 }}
           className="mt-2 pl-1 text-xs text-slate-400"
         >
-          {resultCount} ta {resultNoun} topildi
+          {resultCount} ta {resultNoun} topildi{exact ? ' · aniq qidiruv' : ''}
         </motion.p>
       )}
     </div>

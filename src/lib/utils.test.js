@@ -93,3 +93,16 @@ describe('hueFromString', () => {
     expect(a).toBeLessThan(360)
   })
 })
+
+describe('formatDuration', () => {
+  it('formats minutes, hours and days in Uzbek', async () => {
+    const { formatDuration } = await import('./utils')
+    expect(formatDuration(0)).toBe('< 1 daq')
+    expect(formatDuration(45_000)).toBe('< 1 daq')
+    expect(formatDuration(5 * 60_000)).toBe('5 daq')
+    expect(formatDuration(62 * 60_000)).toBe('1 soat 2 daq')
+    expect(formatDuration(120 * 60_000)).toBe('2 soat')
+    expect(formatDuration((2 * 1440 + 180) * 60_000)).toBe('2 kun 3 soat')
+    expect(formatDuration(-5)).toBe('< 1 daq')
+  })
+})

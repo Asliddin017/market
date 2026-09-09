@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalize, smartSearch, searchCategories } from './search'
+import { normalize, smartSearch, searchCategories, exactSearch } from './search'
 
 describe('normalize', () => {
   it('folds apostrophe variants and case', () => {
@@ -92,5 +92,30 @@ describe('searchCategories', () => {
 
   it('returns an empty array when nothing matches', () => {
     expect(searchCategories('xyzqwertyuiop', cats)).toHaveLength(0)
+  })
+})
+
+describe('exactSearch ("Aniq qidiruv")', () => {
+  const cats = [
+    { id: 'c1', name: 'Energetik — Banka' },
+    { id: 'c2', name: "Go'sht mahsulotlari" },
+  ]
+  const prods = [
+    { id: 'p1', name: 'Red Bull katta', categoryId: 'c1', createdAt: '2026-01-01' },
+    { id: 'p2', name: 'Flesh kichkina', categoryId: 'c1', createdAt: '2026-01-02' },
+    { id: 'p3', name: 'Qazi Tam-Tam', categoryId: 'c2', createdAt: '2026-01-03' },
+  ]
+  it('matches only names that contain the typed text (no typo tolerance)', () => {
+    expect(exactSearch('red', prods, cats).map((p) => p.id)).toEqual(['p1'])
+    expect(exactSearch('redd', prods, cats)).toEqual([]) // fuzzy would still find it
+    expect(exactSearch('energtik', prods, cats)).toEqual([])
+  })
+  it('is case-insensitive and apostrophe/Cyrillic tolerant', () => {
+    expect(exactSearch('QAZI', prods, cats).map((p) => p.id)).toEqual(['p3'])
+    expect(exactSearch('gosht', prods, cats).map((p) => p.id)).toEqual(['p3']) // via category
+  })
+  it('category hits come after name hits; empty query returns all', () => {
+    expect(exactSearch('energetik', prods, cats).map((p) => p.id)).toEqual(['p2', 'p1'])
+    expect(exactSearch('', prods, cats)).toHaveLength(3)
   })
 })

@@ -69,6 +69,8 @@ export const mapProfile = (r) => ({
   id: r.id,
   username: r.username,
   role: r.role,
+  isActive: r.is_active ?? true,
+  lastSeenAt: r.last_seen_at ?? null,
   createdAt: r.created_at,
 })
 
@@ -82,6 +84,8 @@ export const mapLoginEvent = (r) => ({
   screen: r.screen ?? null,
   language: r.language ?? null,
   userAgent: r.user_agent ?? null,
+  ip: r.ip ?? null,
+  lastActiveAt: r.last_active_at ?? r.created_at,
   createdAt: r.created_at,
   username: r.profiles?.username ?? null,
   role: r.profiles?.role ?? null,
@@ -588,22 +592,41 @@ export function useStats({ days = 30, topN = 5 } = {}) {
 // saved session ('visit'), with the device/browser it came from. RLS: a user
 // can only insert rows about themself; only admins can read them.
 
-/** Record that the current user signed in / opened the app on this device. */
+/** Record that the current user signed in / opened the app on this device.
+ *  Returns the new row id (used for session-length heartbeats) or null. */
 export async function recordLoginEvent(userId, kind = 'login') {
-  if (!userId) return
+  if (!userId) return null
   const d = currentDeviceInfo()
-  const { error } = await supabase.from('login_events').insert({
-    user_id: userId,
-    kind,
-    device_type: d.deviceType,
-    os: d.os,
-    browser: d.browser,
-    screen: d.screen,
-    language: d.language,
-    user_agent: d.userAgent,
-  })
+  const { data, error } = await supabase
+    .from('login_events')
+    .insert({
+      user_id: userId,
+      kind,
+      device_type: d.deviceType,
+      os: d.os,
+      browser: d.browser,
+      screen: d.screen,
+      language: d.language,
+      user_agent: d.userAgent,
+    })
+    .select('id')
+    .single()
   // Never block the app on logging (e.g. the table is not created yet).
-  if (error) console.error('[login-log] yozib bo‘lmadi:', error.message)
+  if (error) {
+    console.error('[login-log] yozib bo‘lmadi:', error.message)
+    return null
+  }
+  return data?.id ?? null
+}
+
+/** Heartbeat: stamp "still here" on this tab's log row (session length). */
+export async function touchLoginEvent(eventId) {
+  if (!eventId) return
+  const { error } = await supabase
+    .from('login_events')
+    .update({ last_active_at: new Date().toISOString() })
+    .eq('id', eventId)
+  if (error) console.error('[login-log] heartbeat:', error.message)
 }
 
 /** Admin: live list of the most recent login events across all users. */
@@ -778,6 +801,20 @@ export async function deleteCategory(id) {
 export async function updateUserRole(id, role) {
   const { error } = await supabase.from('profiles').update({ role }).eq('id', id)
   if (error) throw error
+}
+
+/** Admin: activate / deactivate an account (a deactivated one is signed out
+ *  and loses every permission; see supabase/update_2026_09b.sql). */
+export async function setUserActive(id, isActive) {
+  const { error } = await supabase.from('profiles').update({ is_active: Boolean(isActive) }).eq('id', id)
+  if (error) throw error
+}
+
+/** Admin: delete deactivated accounts unseen for `days` days. Returns the count. */
+export async function cleanupInactiveUsers(days = 30) {
+  const { data, error } = await supabase.rpc('cleanup_inactive_users', { days })
+  if (error) throw error
+  return Number(data) || 0
 }
 
 /** Fetch a single client's saved cart (admin: view client carts). */

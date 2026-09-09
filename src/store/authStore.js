@@ -17,19 +17,74 @@ let bootstrapped = false
 
 // Write ONE login-log row per browser tab + account: a real sign-in is
 // 'login'; opening the app with a saved session is 'visit'. sessionStorage
-// keeps a refresh (F5) from logging again in the same tab.
+// keeps a refresh (F5) from logging again in the same tab, but the row id is
+// kept there too so the heartbeat continues on the same row after a refresh.
+//
+// Heartbeat: while the tab is visible, the row's last_active_at is stamped
+// every HEARTBEAT_MS (and once more when the tab is hidden/closed), so the
+// admin sees how long each session stayed connected.
+const HEARTBEAT_MS = 60_000
+let heartbeatEventId = null
+let heartbeatTimer = null
+let heartbeatBound = false
+
+async function beat() {
+  if (!heartbeatEventId) return
+  const { touchLoginEvent } = await import('../hooks/useData')
+  touchLoginEvent(heartbeatEventId)
+}
+
+function startHeartbeat(eventId) {
+  heartbeatEventId = eventId
+  if (heartbeatTimer) clearInterval(heartbeatTimer)
+  heartbeatTimer = setInterval(() => {
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') beat()
+  }, HEARTBEAT_MS)
+  if (!heartbeatBound && typeof document !== 'undefined') {
+    heartbeatBound = true
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') beat()
+    })
+    window.addEventListener('pagehide', () => beat())
+  }
+}
+
+function stopHeartbeat() {
+  heartbeatEventId = null
+  if (heartbeatTimer) clearInterval(heartbeatTimer)
+  heartbeatTimer = null
+}
+
 async function logSessionOnce(session, kind) {
   const uid = session?.user?.id
   if (!uid) return
   const key = `asl-ziyo:logged:${uid}`
+  let existing = null
   try {
-    if (sessionStorage.getItem(key)) return
-    sessionStorage.setItem(key, '1')
+    existing = sessionStorage.getItem(key)
   } catch {
     /* sessionStorage unavailable (private mode) — still log once per load */
   }
+  if (existing) {
+    // Same tab after a refresh: keep heart-beating the row we already wrote.
+    if (existing !== '1') startHeartbeat(existing)
+    return
+  }
+  try {
+    sessionStorage.setItem(key, '1')
+  } catch {
+    /* ignore */
+  }
   const { recordLoginEvent } = await import('../hooks/useData')
-  recordLoginEvent(uid, kind)
+  const id = await recordLoginEvent(uid, kind)
+  if (id) {
+    try {
+      sessionStorage.setItem(key, id)
+    } catch {
+      /* ignore */
+    }
+    startHeartbeat(id)
+  }
 }
 
 /** Map common Supabase auth errors to friendly Uzbek messages. */
@@ -53,6 +108,7 @@ export const useAuthStore = create((set, get) => ({
   user: null, // { id, username, role } | null
   role: null, // mirror of user.role | null
   ready: false, // initial session resolved?
+  notice: '', // message shown on the login screen (e.g. account deactivated)
 
   /** Resolve current session + subscribe to changes. Safe to call repeatedly. */
   bootstrap: async () => {
@@ -84,9 +140,19 @@ export const useAuthStore = create((set, get) => ({
     }
     const { data, error } = await supabase
       .from('profiles')
-      .select('username, role')
+      .select('*')
       .eq('id', authUser.id)
       .single()
+    if (data && data.is_active === false) {
+      // Deactivated by an admin: sign out and explain on the login screen.
+      set({
+        user: null,
+        role: null,
+        notice: "Hisobingiz administrator tomonidan faolsizlantirilgan. Do'kon bilan bog'laning.",
+      })
+      supabase.auth.signOut().catch(() => {})
+      return
+    }
     if (error || !data) {
       console.error('[auth] profil yuklanmadi:', error)
       set({
@@ -98,6 +164,7 @@ export const useAuthStore = create((set, get) => ({
     set({
       user: { id: authUser.id, username: data.username, role: data.role },
       role: data.role,
+      notice: '',
     })
   },
 
@@ -144,6 +211,8 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
+    await beat() // final "still here" stamp = end of this session
+    stopHeartbeat()
     try {
       const uid = get().user?.id
       if (uid) sessionStorage.removeItem(`asl-ziyo:logged:${uid}`)

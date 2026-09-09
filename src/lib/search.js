@@ -149,6 +149,28 @@ export function smartSearch(query, products, categories) {
 }
 
 /**
+ * EXACT search ("Aniq qidiruv"): no typo tolerance, no fuzzy ranking — only
+ * products whose name (or category name) CONTAINS what was typed, as typed.
+ * Case-insensitive and apostrophe/Cyrillic-tolerant via the same normalize()
+ * so "go'sht" / "gosht" / "гўшт" still find each other, but "energtik" will
+ * NOT find "Energetik". Empty query returns everything (newest first).
+ * Name hits come before category-only hits, each group A→Z.
+ */
+export function exactSearch(query, products, categories) {
+  const q = normalize(query)
+  if (!q) return products.slice().sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt))
+  const { data } = getIndexes(products, categories)
+  const byName = []
+  const byCat = []
+  for (const item of data) {
+    if (item._name.includes(q)) byName.push(item)
+    else if (item._category.includes(q)) byCat.push(item)
+  }
+  const az = (a, b) => String(a.name).localeCompare(String(b.name), ['uz', 'ru'], { sensitivity: 'base', numeric: true })
+  return [...byName.sort(az), ...byCat.sort(az)]
+}
+
+/**
  * Fuzzy-search categories by NAME. Uses the SAME normalize() + Fuse settings as
  * the category-matching step inside smartSearch, so the Categories page filters
  * with exactly the behaviour clients/staff already get on the Products page
