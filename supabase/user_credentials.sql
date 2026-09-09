@@ -11,7 +11,7 @@
 -- page. Anyone who obtains a database dump or the service_role key reads
 -- every password here. Shop owner's explicit decision (2026-09-09).
 --
--- Access: a user may write ONLY their own row; ONLY admins may read.
+-- Access: a user may write/read ONLY their own row; admins read every row.
 -- ===========================================================================
 
 create table if not exists public.user_credentials (
@@ -31,9 +31,13 @@ create policy "user_credentials_update_own" on public.user_credentials
   for update to authenticated
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+-- Users may read ONLY their own row (Postgres needs a SELECT policy for the
+-- UPDATE / ON CONFLICT path of an upsert); admins read every row.
 drop policy if exists "user_credentials_select_admin" on public.user_credentials;
-create policy "user_credentials_select_admin" on public.user_credentials
-  for select to authenticated using (public.current_app_role() = 'admin');
+drop policy if exists "user_credentials_select_own_or_admin" on public.user_credentials;
+create policy "user_credentials_select_own_or_admin" on public.user_credentials
+  for select to authenticated
+  using (user_id = auth.uid() or public.current_app_role() = 'admin');
 
 drop policy if exists "user_credentials_delete_admin" on public.user_credentials;
 create policy "user_credentials_delete_admin" on public.user_credentials
