@@ -19,8 +19,12 @@ export default defineConfig({
     // Split the animation lib into its own chunk so it can be cached separately.
     rollupOptions: {
       output: {
-        manualChunks: {
-          motion: ['framer-motion'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined
+          if (id.includes('framer-motion') || id.includes('/motion')) return 'motion'
+          if (id.includes('@supabase')) return 'supabase'
+          if (id.includes('/react') || id.includes('/scheduler')) return 'react'
+          return undefined
         },
       },
     },

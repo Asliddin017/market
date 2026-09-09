@@ -54,8 +54,10 @@ const RULES = [
   { emoji: '🍫', keys: ['shokolad', 'шоколад'] },
   // popcorn / corn BEFORE the generic snack rule (neither shares a substring
   // with the others, but keep the edible-corn intent explicit).
-  { emoji: '🍿', keys: ['popcorn', "makkajo'xori", 'makkajoxori', 'кукуруз'] },
+  { emoji: '🍿', keys: ['popcorn', 'popkorn', "makkajo'xori", 'makkajoxori', 'kukuruz', 'кукуруз'] },
   { emoji: '🍟', keys: ['chips', 'snek', 'snack', 'чипс'] },
+  // Crunchy snacks: suxariki / grenki / xrustyashki.
+  { emoji: '🥨', keys: ['suxarik', 'suhariki', 'xrust', 'hrust', 'grenki', 'сухар', 'хруст'] },
   { emoji: '🍪', keys: ['pechenye', 'pechene', 'vafli', 'vafel', 'печенье', 'вафл'] },
   // Sweets & gum & sugar.
   {
@@ -120,6 +122,10 @@ const RULES = [
 
   // --- pest control --------------------------------------------------------
   { emoji: '🦟', keys: ['hasharot', 'dixlofos', 'дихлофос', 'от насеком'] },
+
+  // --- juice (kept LAST: "sok" is a short key, so every more specific rule
+  //     above gets first pick) ----------------------------------------------
+  { emoji: '🧃', keys: ['sok', 'sharbat', 'сок'] },
 ]
 
 /**

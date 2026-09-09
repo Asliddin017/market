@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render as rtlRender, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 
 // ---- Mock the data layer so we control loading/empty/data states ----------
 let productsState
@@ -11,6 +12,10 @@ vi.mock('../hooks/useData', () => ({
 }))
 
 import Products from './Products'
+
+// Products reads/writes the ?cat= search param, so it needs a router.
+const render = (ui, { route = '/products' } = {}) =>
+  rtlRender(<MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>)
 import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useCartStore, selectCount, selectTotal, cartTotals } from './cartStore'
 
 // These tests exercise the in-memory cart logic + selectors. With clientId left
@@ -186,5 +186,46 @@ describe('cigarette piece pricing in the cart', () => {
       { id: 'c', qty: 3, price: 22000, unit: 'dona', soldByPiece: true, sellMode: 'dona', piecePrice: 2000, pieceBundleQty: 3, pieceBundlePrice: 5000 },
     ]
     expect(cartTotals(items)).toEqual({ count: 3, total: 5000 })
+  })
+})
+
+describe('cart persistence ordering (per-product write queue)', () => {
+  it('runs writes for one product strictly in order even when earlier ones resolve late', async () => {
+    const { supabase } = await import('../lib/supabase')
+    const pending = []
+    // Every upsert returns a promise WE resolve — the first one last.
+    const from = vi.spyOn(supabase, 'from').mockImplementation(() => ({
+      upsert: (row) =>
+        new Promise((resolve) => {
+          pending.push({ row, resolve })
+        }),
+      delete: () => ({ eq: () => ({ eq: () => Promise.resolve({ error: null }) }) }),
+    }))
+    try {
+      useCartStore.setState({ clientId: 'u1', items: [], updatedAt: null, loaded: true })
+      const s = useCartStore.getState()
+      s.addItem(A, 1) // queued write: qty 1
+      s.increment('a') // must wait for the first write
+      s.increment('a') // and the second
+      await new Promise((r) => setTimeout(r, 0))
+      // Only the FIRST write has been sent; the rest are queued behind it.
+      expect(pending).toHaveLength(1)
+      expect(pending[0].row.quantity).toBe(1)
+
+      pending[0].resolve({ error: null })
+      await new Promise((r) => setTimeout(r, 0))
+      expect(pending).toHaveLength(2)
+      expect(pending[1].row.quantity).toBe(2)
+      pending[1].resolve({ error: null })
+      await new Promise((r) => setTimeout(r, 0))
+      expect(pending).toHaveLength(3)
+      expect(pending[2].row.quantity).toBe(3)
+      pending[2].resolve({ error: null })
+      await new Promise((r) => setTimeout(r, 0))
+      expect(pending.map((p) => p.row.quantity)).toEqual([1, 2, 3])
+    } finally {
+      from.mockRestore()
+      useCartStore.setState({ clientId: null, items: [], updatedAt: null, loaded: false })
+    }
   })
 })

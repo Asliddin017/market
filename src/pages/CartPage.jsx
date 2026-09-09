@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore'
 import { createOrderFromCart, getLastOrderContact } from '../hooks/useData'
 import ProductImage from '../components/ProductImage'
 import ConfirmDialog from '../components/ConfirmDialog'
+import QtyInput from '../components/QtyInput'
 import { LoadingState, ErrorState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
 import { isValidUzPhone } from '../lib/phone'
@@ -222,11 +223,11 @@ export default function CartPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => decrement(item.id)} className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20">−</button>
-                  <input
-                    type="number"
-                    min="1"
+                  <QtyInput
+                    live
                     value={item.qty}
-                    onChange={(e) => setQty(item.id, Number(e.target.value))}
+                    onCommit={(n) => setQty(item.id, n)}
+                    aria-label="Soni"
                     className="w-12 rounded-lg bg-ink-900/60 py-1 text-center text-sm"
                   />
                   <button onClick={() => increment(item.id)} className="h-8 w-8 rounded-lg bg-white/10 text-lg leading-none hover:bg-white/20">+</button>

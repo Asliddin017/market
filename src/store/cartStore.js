@@ -11,6 +11,21 @@ import { SELL_MODE, canEditPrice, lineTotal as lineTotalImpl, total as cartTotal
 // admins can read any client's cart via getUserCart (Users page).
 // ---------------------------------------------------------------------------
 
+// Per-product write queue. Every Supabase write for one product runs strictly
+// AFTER the previous one for that product finished, so a fast "+ + +" (or a
+// quick edit then remove) can never land out of order and leave a stale
+// quantity saved. `clear()` waits for every queue to drain before deleting.
+const persistQueues = new Map()
+function enqueue(productId, task) {
+  const prev = persistQueues.get(productId) ?? Promise.resolve()
+  const next = prev.catch(() => {}).then(task)
+  persistQueues.set(productId, next)
+  next.finally(() => {
+    if (persistQueues.get(productId) === next) persistQueues.delete(productId)
+  })
+  return next
+}
+
 export const useCartStore = create((set, get) => ({
   clientId: null,
   items: [], // [{ id, name, price, unit, image, qty }]
@@ -40,37 +55,42 @@ export const useCartStore = create((set, get) => ({
   reload: () => get().loadForUser(get().clientId),
 
   /** Upsert one product row (quantity + custom price + sell mode) in Supabase. */
-  _persistQty: async (productId, quantity) => {
+  _persistQty: (productId, quantity) => {
     const { clientId, items } = get()
     if (clientId == null) return
     set({ updatedAt: new Date().toISOString() })
     const item = items.find((i) => i.id === productId)
-    const { error } = await supabase
-      .from('cart_items')
-      .upsert(
-        {
-          client_id: clientId,
-          product_id: productId,
-          quantity,
-          // Only kg items keep a custom price (Change A); ignore it otherwise.
-          custom_price: item && canEditPrice(item) ? item.customPrice ?? null : null,
-          sell_mode: item?.sellMode ?? null,
-        },
-        { onConflict: 'client_id,product_id' },
-      )
-    if (error) console.error('[cart] save failed:', error)
+    const row = {
+      client_id: clientId,
+      product_id: productId,
+      quantity,
+      // Only kg items keep a custom price (Change A); ignore it otherwise.
+      custom_price: item && canEditPrice(item) ? item.customPrice ?? null : null,
+      sell_mode: item?.sellMode ?? null,
+    }
+    return enqueue(productId, async () => {
+      // The user may have logged out / switched while this write was queued.
+      if (get().clientId !== clientId) return
+      const { error } = await supabase
+        .from('cart_items')
+        .upsert(row, { onConflict: 'client_id,product_id' })
+      if (error) console.error('[cart] save failed:', error)
+    })
   },
 
-  _persistDelete: async (productId) => {
+  _persistDelete: (productId) => {
     const { clientId } = get()
     if (clientId == null) return
     set({ updatedAt: new Date().toISOString() })
-    const { error } = await supabase
-      .from('cart_items')
-      .delete()
-      .eq('client_id', clientId)
-      .eq('product_id', productId)
-    if (error) console.error('[cart] delete failed:', error)
+    return enqueue(productId, async () => {
+      if (get().clientId !== clientId) return
+      const { error } = await supabase
+        .from('cart_items')
+        .delete()
+        .eq('client_id', clientId)
+        .eq('product_id', productId)
+      if (error) console.error('[cart] delete failed:', error)
+    })
   },
 
   addItem: (product, qty = 1, opts = {}) => {
@@ -163,6 +183,9 @@ export const useCartStore = create((set, get) => ({
     const { clientId } = get()
     set({ items: [], updatedAt: new Date().toISOString() })
     if (clientId == null) return
+    // Let in-flight per-line writes finish first, otherwise a queued upsert
+    // could re-create a row right after we wiped the cart.
+    await Promise.all([...persistQueues.values()])
     const { error } = await supabase.from('cart_items').delete().eq('client_id', clientId)
     if (error) console.error('[cart] clear failed:', error)
   },

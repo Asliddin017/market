@@ -71,32 +71,21 @@ function buildIndexData(products, categories) {
   })
 }
 
-/**
- * Run a smart search.
- *
- * @returns {Array} products sorted by relevance. Empty query returns all
- *                  products (newest first) untouched.
- */
-export function smartSearch(query, products, categories) {
+// The normalised dataset + both Fuse indexes only depend on the (products,
+// categories) arrays, which keep their identity between keystrokes — so build
+// them once per data change instead of on every typed character.
+let indexCache = null
+function getIndexes(products, categories) {
+  if (indexCache && indexCache.products === products && indexCache.categories === categories) {
+    return indexCache
+  }
   const data = buildIndexData(products, categories)
-
-  const q = normalize(query)
-  if (!q) return products.slice().sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt))
-
-  // 1) Does the query look like a category? If a category name fuzzily matches,
-  //    we want EVERY product in that category included.
   const catFuse = new Fuse(categories, {
     keys: [{ name: 'name', getFn: (c) => normalize(c.name) }],
     includeScore: true,
     threshold: 0.45,
     ignoreLocation: true,
   })
-  const catMatches = catFuse.search(q)
-  const matchedCategoryIds = new Set(
-    catMatches.filter((m) => m.score <= 0.45).map((m) => m.item.id),
-  )
-
-  // 2) Fuzzy search across product name + category name.
   const productFuse = new Fuse(data, {
     keys: [
       { name: '_name', weight: 0.7 },
@@ -108,6 +97,30 @@ export function smartSearch(query, products, categories) {
     minMatchCharLength: 1,
     ignoreLocation: true,
   })
+  indexCache = { products, categories, data, catFuse, productFuse }
+  return indexCache
+}
+
+/**
+ * Run a smart search.
+ *
+ * @returns {Array} products sorted by relevance. Empty query returns all
+ *                  products (newest first) untouched.
+ */
+export function smartSearch(query, products, categories) {
+  const q = normalize(query)
+  if (!q) return products.slice().sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt))
+
+  const { data, catFuse, productFuse } = getIndexes(products, categories)
+
+  // 1) Does the query look like a category? If a category name fuzzily matches,
+  //    we want EVERY product in that category included.
+  const catMatches = catFuse.search(q)
+  const matchedCategoryIds = new Set(
+    catMatches.filter((m) => m.score <= 0.45).map((m) => m.item.id),
+  )
+
+  // 2) Fuzzy search across product name + category name.
   const productMatches = productFuse.search(q)
 
   // Score map: lower is better. Start from fuzzy product scores.

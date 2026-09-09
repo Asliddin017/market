@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useCartStore } from './store/cartStore'
@@ -6,17 +6,21 @@ import { can } from './lib/roles'
 import { isSupabaseConfigured } from './lib/supabase'
 import Layout from './components/Layout'
 import CategoryBackground from './components/CategoryBackground'
+import { LoadingState } from './components/AsyncStates'
 import Login from './pages/Login'
 import Home from './pages/Home'
 import Products from './pages/Products'
-import BulkImages from './pages/BulkImages'
-import Categories from './pages/Categories'
 import CartPage from './pages/CartPage'
 import Orders from './pages/Orders'
-import OrderDetail from './pages/OrderDetail'
-import Users from './pages/Users'
-import Contact from './pages/Contact'
-import Statistika from './pages/Statistika'
+
+// Less-frequent pages load on demand, so the first paint ships only the code
+// for the screens everyone opens (login / home / products / cart / orders).
+const BulkImages = lazy(() => import('./pages/BulkImages'))
+const Categories = lazy(() => import('./pages/Categories'))
+const OrderDetail = lazy(() => import('./pages/OrderDetail'))
+const Users = lazy(() => import('./pages/Users'))
+const Contact = lazy(() => import('./pages/Contact'))
+const Statistika = lazy(() => import('./pages/Statistika'))
 
 export default function App() {
   const user = useAuthStore((s) => s.user)
@@ -77,6 +81,7 @@ export default function App() {
         // Not logged in -> login / registration screen only.
         <Login />
       ) : (
+        <Suspense fallback={<LoadingState />}>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
@@ -110,6 +115,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
+        </Suspense>
       )}
     </>
   )

@@ -49,9 +49,13 @@ alter table public.cart_items
   add column if not exists sell_mode text check (sell_mode is null or sell_mode in ('pachka', 'dona'));
 
 -- ===========================================================================
--- 3) Configure cigarettes (category 'Sigaretlar'). Idempotent UPDATEs — no
---    re-seed needed. The three specials are matched case-insensitively by name
---    so Title-casing on import does not matter.
+-- 3) Configure cigarettes (category 'Sigaretlar'). Idempotent UPDATEs.
+--    NOTE: since 2026-09 the per-piece config is carried by src/data/products.json
+--    and written by `npm run seed`, so this block only back-fills rows that
+--    have NO piece price yet (it never overwrites what the seed set).
+--
+--    Current rule (2026-09 price list): every cigarette = 2000 so'm per piece;
+--    Palmal / LD / Vinston additionally sell 3 pieces for 5000 so'm.
 -- ===========================================================================
 do $$
 declare
@@ -65,17 +69,15 @@ begin
   -- All cigarettes can be sold by piece.
   update public.products set sold_by_piece = true where category_id = cig_cat;
 
-  -- Specials: Палмалл простой, Милано, Кемал => flat 1000 so'm/piece (no bundle).
-  update public.products
-  set piece_price = 1000, piece_bundle_qty = null, piece_bundle_price = null
-  where category_id = cig_cat
-    and lower(name) in (lower('Палмалл простой'), lower('Милано'), lower('Кемал'));
-
-  -- Everyone else: 2000 so'm/piece, but every 3 = 5000 so'm.
+  -- Back-fill only rows the seed did not configure.
   update public.products
   set piece_price = 2000, piece_bundle_qty = 3, piece_bundle_price = 5000
-  where category_id = cig_cat
-    and lower(name) not in (lower('Палмалл простой'), lower('Милано'), lower('Кемал'));
+  where category_id = cig_cat and piece_price is null
+    and (lower(name) like 'palmal%' or lower(name) like 'ld %' or lower(name) like 'vinston%');
+
+  update public.products
+  set piece_price = 2000, piece_bundle_qty = null, piece_bundle_price = null
+  where category_id = cig_cat and piece_price is null;
 end $$;
 
 -- ===========================================================================

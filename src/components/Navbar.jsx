@@ -93,14 +93,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile nav */}
-      <nav className="flex items-center justify-around border-t border-white/10 px-2 py-1.5 md:hidden">
+      {/* Mobile nav — scrolls sideways when the role has more tabs than fit
+          (admin has 9); spreads evenly when they all fit. */}
+      <nav className="overflow-x-auto border-t border-white/10 md:hidden">
+        <div className="flex w-max min-w-full items-center justify-around gap-1 px-2 py-1.5">
         {links.map((l) => (
           <NavLink
             key={l.to}
             to={l.to}
             className={({ isActive }) =>
-              `flex flex-col items-center rounded-lg px-3 py-1 text-[11px] font-medium transition ${
+              `flex shrink-0 flex-col items-center whitespace-nowrap rounded-lg px-3 py-1 text-[11px] font-medium transition ${
                 isActive ? 'text-brand-300' : 'text-slate-400'
               }`
             }
@@ -116,6 +118,7 @@ export default function Navbar() {
             {l.label}
           </NavLink>
         ))}
+        </div>
       </nav>
     </header>
   )

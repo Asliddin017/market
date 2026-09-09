@@ -59,6 +59,17 @@
     }
   }
 
+  /* Modern rendering hints: smooth mobile scrolling, no tap flash, GPU text. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  main {
+    /* Skip layout/paint of off-screen page sections until scrolled to. */
+    content-visibility: auto;
+  }
+
   /* Smooth, themed scrollbar */
   ::-webkit-scrollbar {
     width: 10px;
@@ -77,13 +88,33 @@
 }
 
 @layer components {
-  /* Frosted glass surface used across cards, navbar, modals. */
+  /*
+   * Frosted glass surfaces. backdrop-filter is the single most expensive
+   * effect on low-end phone GPUs (every scroll repaints every blurred card),
+   * so the blur is applied only on wide (desktop-class) screens; phones get
+   * a slightly more opaque tint that reads the same.
+   */
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-white/[0.07] border border-white/10 lg:bg-white/5 lg:backdrop-blur-xl;
   }
 
   .glass-strong {
-    @apply bg-ink-900/70 backdrop-blur-2xl border border-white/10;
+    @apply bg-ink-900/90 border border-white/10 lg:bg-ink-900/70 lg:backdrop-blur-2xl;
+  }
+
+  /* Cheap one-shot fade/rise for list cards (replaces per-card framer-motion). */
+  .card-enter {
+    animation: card-enter 0.35s ease-out both;
+  }
+  @keyframes card-enter {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   .btn {

@@ -63,9 +63,10 @@ ma'lumotlar bazasini** ko'radi.
     - **Son** har doim (kg ham, dona ham) o'zgartiriladi — masalan sotuvchi "Flash ×3"
       ni ×1 ga tushiradi, jami ikkala tomonda jonli qayta hisoblanadi.
   - **🚬 Sigaretlar — pachka yoki dona**: sigaretni **pachka** (joriy narx) yoki **dona**
-    sotish mumkin. Dona narxi: dastlabki 3 tasi (Палмалл простой, Милано, Кемал) —
-    **1000 so'm/dona**; qolganlari — **2000 so'm/dona**, lekin **har 3 ta = 5000 so'm**.
-    Xaridor pachka/dona ni mahsulot kartasi yoki savatchada tanlaydi.
+    sotish mumkin. Dona narxi **2000 so'm**; Palmal / LD / Vinston da qo'shimcha
+    **3 ta = 5000 so'm**. Dona-narx sozlamalari `src/data/products.json` da turadi va
+    `npm run seed` bilan yoziladi. Xaridor pachka/dona ni mahsulot kartasi yoki
+    savatchada tanlaydi.
   - **Chek (receipt)** — buyurtma tayyor bo'lganda mijoz chop etsa bo'ladigan chekni
     ko'radi (do'kon nomi **ASL ZIYO**, sana, mahsulotlar, yo'q mahsulotlar alohida,
     yakuniy summa).
@@ -158,13 +159,12 @@ supabase db execute --file supabase/orders.sql
 `supabase/piece_pricing.sql` ni **`orders.sql` dan keyin** ishga tushiring. U:
 - `products` va `order_items` ga dona-narx ustunlarini qo'shadi (`sold_by_piece`,
   `piece_price`, `piece_bundle_qty`, `piece_bundle_price`) + `sell_mode` (pachka/dona);
-- **'Sigaretlar'** kategoriyasini sozlaydi (3 ta maxsus = 1000; qolganlari = 2000, 3 ta
-  = 5000) — **194 mahsulotni qayta seed qilish shart emas**, faqat sigaretlar yangilanadi;
+- **'Sigaretlar'** kategoriyasida dona-narxi bo'sh qolgan qatorlarni to'ldiradi
+  (seed yozganini **ustidan yozmaydi**);
 - jami summa triggerini yangilaydi: **dona** mahsulotlarda maxsus narx e'tiborga
   olinmaydi (faqat **kg** da), sigaret dona narxi esa bundle bilan hisoblanadi.
 
-To'liq idempotent. Maxsus uchlik nomi (Палмалл простой, Милано, Кемал) **katta-kichik
-harfdan qat'i nazar** moslashtiriladi.
+To'liq idempotent.
 
 1. Supabase Dashboard → **SQL** → **New query**.
 2. `supabase/piece_pricing.sql` ni nusxalab joylashtiring.
@@ -206,17 +206,54 @@ supabase db execute --file supabase/storage.sql
 > mahsulot rasmsiz ham saqlanadi. Rasmni almashtirsangiz eskisi Storage'dan
 > o'chiriladi; mahsulot o'chirilsa rasmi ham tozalanadi.
 
+### 4.4) 2026-06 yangilanishi (yashirin kategoriyalar, aloqa, statistika)
+`supabase/update_2026_06.sql` ni **`piece_pricing.sql` dan keyin** ishga tushiring. U:
+- `categories.hidden_for_clients` bayrog'i + RLS — **Sigaretlar** mijozlarga umuman
+  ko'rinmaydi (na kategoriya, na mahsulot);
+- `orders.client_name` / `client_phone` — buyurtmada majburiy ism + telefon;
+- `contacts` jadvali ("Aloqa" sahifasi; faqat admin tahrirlaydi) + asosiy raqam;
+- statistika uchun SECURITY DEFINER funksiyalar (`best_sellers`, `sales_stats`,
+  `revenue_daily`, `top_products`, `top_categories`).
+
+To'liq idempotent.
+
+```bash
+supabase db execute --file supabase/update_2026_06.sql
+```
+
+### 4.5) 2026-09 yangilanishi (buyurtma xavfsizligi — server tomonda)
+`supabase/update_2026_09.sql` ni **`update_2026_06.sql` dan keyin** ishga tushiring. U:
+- `order_items` ga **BEFORE INSERT** trigger qo'shadi: nom, birlik, narx va dona-narx
+  sozlamalari **bazadagi `products` dan** olinadi — mijoz yuborgan qiymatlar
+  e'tiborga olinmaydi (API orqali arzon narx qo'yib bo'lmaydi). `custom_price`
+  faqat **kg** qatorlarda, `sell_mode` faqat sigaretlarda qoladi; mijoz yashirin
+  kategoriyadagi mahsulotga buyurtma bera olmaydi va qatorni "yo'q" deb belgilay olmaydi;
+- `orders` ga **BEFORE INSERT** trigger qo'shadi: yangi buyurtma **doim**
+  `buyurtma_berildi` holatida, `total = 0` bilan boshlanadi (statistikani
+  soxta "tayyor" buyurtma bilan buzib bo'lmaydi).
+
+Ilova o'zi shunday ishlaydi, shuning uchun oddiy foydalanishda hech narsa o'zgarmaydi.
+To'liq idempotent.
+
+```bash
+supabase db execute --file supabase/update_2026_09.sql
+```
+
 ### 5) Email tasdiqlashni o'chiring
 Username → sintetik email (`username@asl-ziyo.app`) sxemasi ishlatilgani uchun,
 **Authentication → Providers → Email → "Confirm email"** ni **o'chiring**. Aks holda
 yangi hisoblar tasdiqlanmagan holda qoladi.
 
-### 6) 194 mahsulotni import qiling (seed)
+### 6) Mahsulotlarni import qiling (seed)
 ```bash
 npm run seed
 ```
-Skript `src/data/products.json` dan 14 kategoriya + 194 mahsulotni Supabase ga
-**upsert** qiladi (qayta ishga tushirsa — dublikat bo'lmaydi). U `.env.local` dagi
+Skript `src/data/products.json` dan **47 bo'lim + 452 mahsulot** ni (2026-09 narx
+ro'yxati: MAHSULOTLAR, Pampers, Kolbasa, Musa, Suv 1, Suv 2) Supabase ga **upsert**
+qiladi (qayta ishga tushirsa — dublikat bo'lmaydi). Bo'lim `{ name, hiddenForClients }`
+ko'rinishida ham bo'lishi mumkin (Sigaretlar mijozlarga yashirin), mahsulot esa
+dona-narx maydonlarini (`soldByPiece`, `piecePrice`, `pieceBundleQty`,
+`pieceBundlePrice`) olib yuradi. U `.env.local` dagi
 `SUPABASE_SERVICE_ROLE_KEY` ni o'qiydi (RLS ni chetlab o'tadi — shuning uchun faqat
 lokalda/CI da ishlating, frontendga chiqarmang).
 
@@ -327,7 +364,7 @@ npm run preview   # build natijasini ko'rish
 
 | Soha          | Texnologiya                                       |
 | ------------- | ------------------------------------------------- |
-| UI            | React 18 + Vite + Tailwind CSS                    |
+| UI            | React 19 + Vite 8 + Tailwind CSS 3                |
 | Backend       | **Supabase** — Postgres + Auth + Realtime + RLS   |
 | Fon / dizayn  | Yengil CSS gradientlar (WebGL emas)               |
 | Animatsiya    | Framer Motion (yengil saqlangan)                  |

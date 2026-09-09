@@ -108,6 +108,37 @@ export const mapOrder = (r) => ({
   clientName: r.profiles?.username ?? null,
 })
 
+// ---- pagination past PostgREST's default 1000-row cap ---------------------
+//
+// A plain .select() silently returns at most 1000 rows (Supabase "Max rows").
+// The catalogue is already several hundred products and growing, so list
+// fetches page through with .range() until a short page comes back.
+const PAGE = 1000
+export async function fetchAllRows(buildQuery) {
+  const rows = []
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await buildQuery().range(from, from + PAGE - 1)
+    if (error) throw error
+    rows.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+  }
+  return rows
+}
+
+// ---- in-memory cache: instant navigation (stale-while-revalidate) --------
+//
+// Every page remounts on navigation (Layout keys the outlet on the pathname),
+// which used to mean a spinner + a full refetch on EVERY tab switch. Hooks
+// that pass a `cacheKey` now render the last known data immediately and
+// refetch in the background; realtime keeps it fresh. The key includes the
+// user id so a different login never sees another account's rows.
+const liveCache = new Map()
+const cacheKeyFor = (key) => (key ? `${key}|${useAuthStore.getState().user?.id ?? 'anon'}` : null)
+/** Drop everything cached (call on logout). */
+export function clearLiveCache() {
+  liveCache.clear()
+}
+
 // ---- shared live-table hook (fetch + realtime refetch) --------------------
 //
 // Robust against network latency / live Supabase (the cause of "intermittent
@@ -125,18 +156,28 @@ export const mapOrder = (r) => ({
 //   * refetch() lets the UI offer a "Qayta urinish" (retry) button.
 //
 // Exported for testing.
-export function useLiveTable(table, loader) {
+export function useLiveTable(table, loader, cacheKey = null) {
   const loaderRef = useRef(loader)
-  loaderRef.current = loader
+  useEffect(() => {
+    loaderRef.current = loader
+  })
 
   // Only fetch once the Supabase session + profile are resolved.
   const authReady = useAuthStore((s) => s.ready)
 
-  const [state, setState] = useState({ data: undefined, loading: true, error: null })
+  const fullKey = cacheKeyFor(cacheKey)
+  const [state, setState] = useState(() => {
+    const cached = fullKey ? liveCache.get(fullKey) : undefined
+    return cached !== undefined
+      ? { data: cached, loading: false, error: null }
+      : { data: undefined, loading: true, error: null }
+  })
   // Mirror of state so the async runner can decide whether data is already on
   // screen (background refetch) without re-subscribing on every change.
   const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => {
+    stateRef.current = state
+  })
 
   const [reloadKey, setReloadKey] = useState(0)
   const refetch = useCallback(() => {
@@ -151,6 +192,7 @@ export function useLiveTable(table, loader) {
     const run = async (attempt = 0) => {
       try {
         const data = await loaderRef.current()
+        if (fullKey) liveCache.set(fullKey, data)
         if (active) setState({ data, loading: false, error: null })
       } catch (error) {
         if (!active) return
@@ -185,7 +227,7 @@ export function useLiveTable(table, loader) {
       active = false
       supabase.removeChannel(channel)
     }
-  }, [table, authReady, reloadKey])
+  }, [table, authReady, reloadKey, fullKey])
 
   return { ...state, refetch }
 }
@@ -201,7 +243,7 @@ export function useCategories() {
       .order('name', { ascending: true })
     if (error) throw error
     return visibleCategories(data.map(mapCategory), useAuthStore.getState().role)
-  })
+  }, 'categories')
 }
 
 /** Live list of products (oldest first, matches the old createdAt order).
@@ -210,16 +252,18 @@ export function useCategories() {
  *  hidden flag, so the UI never shows a banned product even if RLS were loosened. */
 export function useProducts() {
   return useLiveTable('products', async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, categories ( hidden_for_clients )')
-      .order('created_at', { ascending: true })
-    if (error) throw error
+    const data = await fetchAllRows(() =>
+      supabase
+        .from('products')
+        .select('*, categories ( hidden_for_clients )')
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true }),
+    )
     const rows = isStaff(useAuthStore.getState().role)
       ? data
       : data.filter((r) => !r.categories?.hidden_for_clients)
     return rows.map(mapProduct)
-  })
+  }, 'products')
 }
 
 /** Live list of all profiles (admin). Returns { data, loading, error }. */
@@ -231,7 +275,7 @@ export function useUsers() {
       .order('created_at', { ascending: true })
     if (error) throw error
     return data.map(mapProfile)
-  })
+  }, 'profiles')
 }
 
 // ---- Orders (buyurtma) ----------------------------------------------------
@@ -253,7 +297,7 @@ export function useOrders() {
       .order('created_at', { ascending: false })
     if (error) throw error
     return data.map(mapOrder)
-  })
+  }, 'orders')
 }
 
 /** Fetch a single order (with items + client username). */
@@ -278,7 +322,9 @@ export function useOrder(orderId) {
 
   const [state, setState] = useState({ data: undefined, loading: true, error: null })
   const stateRef = useRef(state)
-  stateRef.current = state
+  useEffect(() => {
+    stateRef.current = state
+  })
 
   const [reloadKey, setReloadKey] = useState(0)
   const refetch = useCallback(() => {
@@ -501,7 +547,7 @@ export async function getTopCategories(limitN = 5) {
 
 /** Live best-sellers (refetches when any order changes). { data, loading, error }. */
 export function useBestSellers(limitN = 8) {
-  return useLiveTable('orders', () => getBestSellers(limitN))
+  return useLiveTable('orders', () => getBestSellers(limitN), `best-sellers:${limitN}`)
 }
 
 /**
@@ -517,7 +563,7 @@ export function useStats({ days = 30, topN = 5 } = {}) {
       getTopCategories(topN),
     ])
     return { stats, daily, products, categories }
-  })
+  }, `stats:${days}:${topN}`)
 }
 
 // ---- Contacts ("Aloqa") ----------------------------------------------------
@@ -533,7 +579,7 @@ export function useContacts() {
       .order('created_at', { ascending: true })
     if (error) throw error
     return data.map(mapContact)
-  })
+  }, 'contacts')
 }
 
 /** Admin: create/update a contact. Phone is normalized to +998XXXXXXXXX. */
@@ -567,11 +613,17 @@ export async function deleteContact(id) {
 
 // ---- Product mutations ----------------------------------------------------
 
+/** products.price is a non-negative INTEGER (so'm) — round + clamp so a typed
+ *  "18000.5" or "-5" never turns into a DB constraint error. */
+const toPrice = (v) => Math.max(0, Math.round(Number(v) || 0))
+/** Nullable non-negative integer (piece pricing columns). */
+const toIntOrNull = (v) => (v == null || v === '' ? null : Math.max(0, Math.round(Number(v) || 0)))
+
 export async function saveProduct(product) {
   const payload = {
     name: toTitleCase(product.name),
     category_id: product.categoryId, // uuid string — do NOT Number() it
-    price: Number(product.price) || 0,
+    price: toPrice(product.price),
     unit: product.unit || 'dona',
     image_url: product.image ?? null,
   }
@@ -709,15 +761,15 @@ export async function getUserCart(userId) {
 
 /** Export all categories + products to a plain JSON-serialisable object. */
 export async function exportData() {
-  const [{ data: cats, error: cErr }, { data: prods, error: pErr }] = await Promise.all([
-    supabase.from('categories').select('*').order('name'),
-    supabase.from('products').select('*').order('created_at'),
+  const [cats, prods] = await Promise.all([
+    fetchAllRows(() => supabase.from('categories').select('*').order('name')),
+    fetchAllRows(() =>
+      supabase.from('products').select('*').order('created_at').order('id'),
+    ),
   ])
-  if (cErr) throw cErr
-  if (pErr) throw pErr
   return {
     exportedAt: new Date().toISOString(),
-    version: 1,
+    version: 2,
     categories: cats.map(mapCategory),
     products: prods.map(mapProduct),
   }
@@ -733,9 +785,17 @@ export async function importData(payload) {
   // [{name, categoryId|category, price, unit, image}]) or the raw products.json
   // shape (categories: ["Name", ...]).
   const rawCats = payload?.categories ?? []
+  // Only send hidden_for_clients when the backup carries it (v2 exports); an
+  // older/foreign file must not un-hide a category that is hidden today.
+  // (PostgREST bulk upsert needs identical keys on every row, so the decision
+  // is made once for the whole batch.)
+  const hiddenOf = (c) => (typeof c === 'object' && c ? c.hiddenForClients ?? c.hidden_for_clients : undefined)
+  const hasHidden = rawCats.some((c) => hiddenOf(c) != null)
   const catRows = rawCats.map((c) => {
     const name = toTitleCase(typeof c === 'string' ? c : c.name)
-    return { name, slug: slugify(name), emoji: resolveCategoryIcon(name) }
+    const row = { name, slug: slugify(name), emoji: resolveCategoryIcon(name) }
+    if (hasHidden) row.hidden_for_clients = Boolean(hiddenOf(c))
+    return row
   })
 
   const { data: cats, error: cErr } = await supabase
@@ -746,6 +806,10 @@ export async function importData(payload) {
   const idByName = new Map(cats.map((c) => [c.name, c.id]))
 
   const rawProducts = payload?.products ?? []
+  // Per-piece (cigarette) config is restored when the backup has it; otherwise
+  // the columns are left untouched (same "identical keys" rule as above).
+  const pieceOf = (p) => p.soldByPiece ?? p.sold_by_piece
+  const hasPiece = rawProducts.some((p) => pieceOf(p) != null)
   const prodRows = []
   for (const p of rawProducts) {
     // Resolve category by id (export) or by name (products.json / mixed).
@@ -754,13 +818,20 @@ export async function importData(payload) {
       categoryId = idByName.get(toTitleCase(p.category ?? p.categoryName))
     }
     if (!categoryId) continue
-    prodRows.push({
+    const row = {
       name: toTitleCase(p.name),
       category_id: categoryId,
-      price: Number(p.price) || 0,
+      price: toPrice(p.price),
       unit: p.unit || 'dona',
       image_url: p.image ?? p.image_url ?? null,
-    })
+    }
+    if (hasPiece) {
+      row.sold_by_piece = Boolean(pieceOf(p))
+      row.piece_price = toIntOrNull(p.piecePrice ?? p.piece_price)
+      row.piece_bundle_qty = toIntOrNull(p.pieceBundleQty ?? p.piece_bundle_qty)
+      row.piece_bundle_price = toIntOrNull(p.pieceBundlePrice ?? p.piece_bundle_price)
+    }
+    prodRows.push(row)
   }
 
   let written = 0

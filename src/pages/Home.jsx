@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useProducts, useCategories, useBestSellers } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { useCartStore } from '../store/cartStore'
@@ -33,6 +33,13 @@ export default function Home() {
   const meta = ROLE_META[role]
 
   const canAddToCart = can(role, 'useCart')
+
+  const [toast, setToast] = useState('')
+  function handleAddToCart(p, opts) {
+    addToCart(p, 1, opts)
+    setToast(`"${p.name}" savatga qo'shildi`)
+    setTimeout(() => setToast(''), 2000)
+  }
 
   // Best-sellers (server-aggregated across completed orders). Cigarettes are
   // already excluded for clients (they're absent from `products`).
@@ -138,7 +145,7 @@ export default function Home() {
           {categories.map((c) => (
             <Link
               key={c.id}
-              to="/products"
+              to={`/products?cat=${encodeURIComponent(c.id)}`}
               className="glass flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium transition hover:bg-white/10"
             >
               <span className="text-lg">{c.icon}</span> {c.name}
@@ -168,7 +175,7 @@ export default function Home() {
                   canManage={false}
                   canDelete={false}
                   canAddToCart={canAddToCart}
-                  onAddToCart={(prod) => addToCart(prod, 1)}
+                  onAddToCart={handleAddToCart}
                 />
               )
             })}
@@ -177,6 +184,19 @@ export default function Home() {
       )}
       </>
       )}
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow"
+          >
+            ✓ {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

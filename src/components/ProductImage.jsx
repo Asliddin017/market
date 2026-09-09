@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { hueFromString } from '../lib/utils'
 
 /**
@@ -8,12 +8,10 @@ import { hueFromString } from '../lib/utils'
  * showing a broken-image icon. Images are lazy-loaded so long lists stay fast.
  */
 export default function ProductImage({ product, categoryIcon = '📦', className = '' }) {
-  const [failed, setFailed] = useState(false)
-
-  // Reset the error flag when the source changes (e.g. image replaced/removed).
-  useEffect(() => {
-    setFailed(false)
-  }, [product.image])
+  // The URL that failed to load; a replaced/removed image is a new URL, so the
+  // fallback resets by itself without an effect.
+  const [failedSrc, setFailedSrc] = useState(null)
+  const failed = failedSrc != null && failedSrc === product.image
 
   if (product.image && !failed) {
     return (
@@ -22,7 +20,7 @@ export default function ProductImage({ product, categoryIcon = '📦', className
         alt={product.name}
         loading="lazy"
         decoding="async"
-        onError={() => setFailed(true)}
+        onError={() => setFailedSrc(product.image)}
         className={`h-full w-full object-cover ${className}`}
       />
     )

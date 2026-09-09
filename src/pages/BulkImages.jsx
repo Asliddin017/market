@@ -30,7 +30,7 @@ export default function BulkImages() {
   }
 
   const [query, setQuery] = useState('')
-  const [activeCat, setActiveCat] = useState(null) // categoryId | null
+  const [chosenCat, setActiveCat] = useState(null) // categoryId | null
   const [done, setDone] = useState({}) // productId -> uploaded URL (this session)
   const [uploadingId, setUploadingId] = useState(null)
   const [errors, setErrors] = useState({}) // productId -> message
@@ -52,6 +52,10 @@ export default function BulkImages() {
     [categories, imagelessCategoryIds],
   )
 
+  // If the chosen category no longer has imageless products, the filter is
+  // simply ignored (derived, not synced via an effect).
+  const activeCat = chosenCat != null && imagelessCategoryIds.has(chosenCat) ? chosenCat : null
+
   // Smart fuzzy search + category-chip filter (same engine as Products).
   const results = useMemo(() => {
     let list = smartSearch(deferredQuery, products, categories)
@@ -68,16 +72,13 @@ export default function BulkImages() {
     [rows, done],
   )
   const pendingRef = useRef(pendingIds)
-  pendingRef.current = pendingIds
+  useEffect(() => {
+    pendingRef.current = pendingIds
+  })
 
   // Refs to each row's pick button so we can move focus to the next one.
   const btnRefs = useRef(new Map())
   const inputRefs = useRef(new Map())
-
-  // If the active category no longer has imageless products, drop the filter.
-  useEffect(() => {
-    if (activeCat != null && !imagelessCategoryIds.has(activeCat)) setActiveCat(null)
-  }, [activeCat, imagelessCategoryIds])
 
   async function handlePick(product, e) {
     const file = e.target.files?.[0]

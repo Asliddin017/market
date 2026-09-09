@@ -8,24 +8,26 @@ import { formatSom, formatDateTime } from '../lib/utils'
  * changes (see supabase/schema.sql). Loading / empty / error states handled.
  */
 export default function PriceHistory({ productId }) {
-  const [state, setState] = useState({ rows: undefined, error: null })
   const [reloadKey, setReloadKey] = useState(0)
+  // Result tagged with the request it answers; a different product / retry
+  // simply shows "loading" until its own answer arrives.
+  const key = `${productId}:${reloadKey}`
+  const [state, setState] = useState({ key: null, rows: undefined, error: null })
 
   useEffect(() => {
     let active = true
-    setState({ rows: undefined, error: null })
     getPriceHistory(productId)
-      .then((rows) => active && setState({ rows, error: null }))
+      .then((rows) => active && setState({ key, rows, error: null }))
       .catch((error) => {
         console.error('[PriceHistory] load failed:', error)
-        if (active) setState({ rows: undefined, error })
+        if (active) setState({ key, rows: undefined, error })
       })
     return () => {
       active = false
     }
-  }, [productId, reloadKey])
+  }, [productId, reloadKey, key])
 
-  const { rows, error } = state
+  const { rows, error } = state.key === key ? state : { rows: undefined, error: null }
 
   return (
     <div className="rounded-xl border border-white/10 bg-ink-950/40 p-3">

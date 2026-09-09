@@ -28,15 +28,26 @@ export default function ProductForm({ open, onClose, product, categories }) {
   // Most recent uploaded-but-not-yet-saved URL (orphan candidate on cancel).
   const freshUploadRef = useRef(null)
 
+  // Latest props, read only when the modal (re)opens. A realtime refetch hands
+  // us NEW product/categories objects while the form is open; resetting on
+  // those would wipe whatever the user is typing.
+  const productRef = useRef(product)
+  const categoriesRef = useRef(categories)
   useEffect(() => {
-    if (open) {
-      setForm(product ? { ...product } : { ...EMPTY, categoryId: categories[0]?.id ?? '' })
-      setError('')
-      setUploading(false)
-      originalImageRef.current = product?.image ?? null
-      freshUploadRef.current = null
-    }
-  }, [open, product, categories])
+    productRef.current = product
+    categoriesRef.current = categories
+  })
+  const productId = product?.id ?? null
+
+  useEffect(() => {
+    if (!open) return
+    const p = productRef.current
+    setForm(p ? { ...p } : { ...EMPTY, categoryId: categoriesRef.current[0]?.id ?? '' })
+    setError('')
+    setUploading(false)
+    originalImageRef.current = p?.image ?? null
+    freshUploadRef.current = null
+  }, [open, productId])
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }))

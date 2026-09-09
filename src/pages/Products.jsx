@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useProducts, useCategories, deleteProduct } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
@@ -41,9 +42,16 @@ export default function Products() {
   const addToCart = useCartStore((s) => s.addItem)
   const setThemeKey = useUiStore((s) => s.setThemeKey)
 
+  // The active category lives in the URL (?cat=<id>) so the Home page's
+  // category chips can deep-link here, F5 keeps the filter, and Back works.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeCat = searchParams.get('cat') || null // categoryId | null
+  const setActiveCat = (id) => setSearchParams(id ? { cat: id } : {}, { replace: true })
+
   const [query, setQuery] = useState('')
-  const [activeCat, setActiveCat] = useState(null) // categoryId | null
-  const [visible, setVisible] = useState(PAGE_SIZE)
+  // How many rows are revealed, remembered together with the filter it was
+  // revealed for — a new query/category naturally starts at PAGE_SIZE again.
+  const [reveal, setReveal] = useState({ key: '', n: PAGE_SIZE })
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [toDelete, setToDelete] = useState(null)
@@ -70,10 +78,16 @@ export default function Products() {
     return list
   }, [deferredQuery, products, categories, activeCat])
 
-  // Reset pagination whenever the result set changes.
+  const resultsKey = `${deferredQuery}|${activeCat ?? ''}`
+  const visible = reveal.key === resultsKey ? reveal.n : PAGE_SIZE
+  const showMore = () =>
+    setReveal((r) => ({ key: resultsKey, n: (r.key === resultsKey ? r.n : PAGE_SIZE) + PAGE_SIZE }))
+
+  // A stale/unknown ?cat= (deleted category, hidden for this role) would filter
+  // everything out with no chip highlighted — drop it once categories are known.
   useEffect(() => {
-    setVisible(PAGE_SIZE)
-  }, [deferredQuery, activeCat])
+    if (activeCat != null && categories.length > 0 && !catById.has(activeCat)) setActiveCat(null)
+  }, [activeCat, categories.length, catById]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Background follows the selected category (default when "Barchasi").
   useEffect(() => {
@@ -179,10 +193,7 @@ export default function Products() {
 
           {visible < results.length && (
             <div className="flex justify-center pt-2">
-              <button
-                onClick={() => setVisible((v) => v + PAGE_SIZE)}
-                className="btn-ghost"
-              >
+              <button onClick={showMore} className="btn-ghost">
                 Ko'proq ko'rsatish ({results.length - visible} ta qoldi)
               </button>
             </div>

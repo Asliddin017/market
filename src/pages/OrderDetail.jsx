@@ -26,6 +26,7 @@ import { formatPhone, telHref } from '../lib/phone'
 import OrderStatusBadge from '../components/OrderStatusBadge'
 import Receipt from '../components/Receipt'
 import ConfirmDialog from '../components/ConfirmDialog'
+import QtyInput from '../components/QtyInput'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 
 export default function OrderDetail() {
@@ -247,12 +248,11 @@ export default function OrderDetail() {
                       >
                         −
                       </button>
-                      <input
-                        type="number"
-                        min="1"
+                      <QtyInput
                         value={it.quantity}
-                        onChange={(e) => changeQty(it, e.target.value)}
+                        onCommit={(n) => changeQty(it, n)}
                         disabled={busy}
+                        aria-label="Soni"
                         className="w-12 rounded-lg bg-ink-900/60 py-1 text-center text-sm"
                       />
                       <button

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUsers, updateUserRole, getUserCart } from '../hooks/useData'
 import { useAuthStore } from '../store/authStore'
 import { useThemeKey } from '../hooks/useThemeKey'
 import { ROLES, ROLE_META } from '../lib/roles'
-import { cartTotals } from '../store/cartStore'
+import { cartTotals, cartLineTotal } from '../store/cartStore'
+import { unitPrice, displayUnit } from '../lib/pricing'
 import { LoadingState, ErrorState, EmptyState } from '../components/AsyncStates'
 import { formatSom, formatDateTime } from '../lib/utils'
 
@@ -22,19 +23,19 @@ function UserRow({ user, isSelf }) {
   const [loadingCart, setLoadingCart] = useState(false)
   const [cartError, setCartError] = useState(false)
   // Optimistic role so the <select> reflects the change immediately (and reverts
-  // if the update fails) — the users list does not refetch on its own.
-  const [role, setRole] = useState(user.role)
-  useEffect(() => setRole(user.role), [user.role])
+  // if the update fails). The override is remembered together with the server
+  // value it replaced, so a fresh server value wins automatically.
+  const [pending, setPending] = useState(null) // { base, value } | null
+  const role = pending && pending.base === user.role ? pending.value : user.role
   const meta = ROLE_META[role]
 
   async function changeRole(next) {
-    const prev = role
-    setRole(next) // optimistic
+    setPending({ base: user.role, value: next }) // optimistic
     try {
       await updateUserRole(user.id, next)
     } catch (err) {
       console.error('[users] role update failed:', err)
-      setRole(prev) // revert on failure
+      setPending(null) // revert on failure
     }
   }
 
@@ -121,8 +122,8 @@ function UserRow({ user, isSelf }) {
                   <div key={i.id} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2 text-sm">
                     <span className="truncate">{i.name}</span>
                     <span className="shrink-0 text-slate-300">
-                      {i.qty} × {formatSom(i.price)} ={' '}
-                      <span className="font-semibold text-brand-300">{formatSom(i.qty * i.price)}</span>
+                      {i.qty} {displayUnit(i)} × {formatSom(unitPrice(i))} ={' '}
+                      <span className="font-semibold text-brand-300">{formatSom(cartLineTotal(i))}</span>
                     </span>
                   </div>
                 ))}

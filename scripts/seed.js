@@ -63,6 +63,9 @@ const supabase = createClient(url, serviceKey, { auth: { persistSession: false }
 
 const CLEAN = process.argv.slice(2).some((a) => a === '--clean' || a === '-c')
 
+// Nullable non-negative integer (per-piece pricing columns).
+const intOrNull = (v) => (v == null ? null : Math.max(0, Math.round(Number(v) || 0)))
+
 // Delete every row of a table. Supabase requires a filter on delete(), so we
 // match all rows via a timestamp column that always exists & is always set.
 async function deleteAll(table, tsColumn) {
@@ -88,7 +91,11 @@ async function clean() {
 
 async function main() {
   const data = JSON.parse(readFileSync(resolve(root, 'src/data/products.json'), 'utf8'))
-  const categoryNames = data.categories
+  // categories: "Name" or { name, hiddenForClients } (e.g. Sigaretlar is hidden
+  // from the client role). products may carry per-piece (cigarette) pricing:
+  // { soldByPiece, piecePrice, pieceBundleQty, pieceBundlePrice }.
+  const categoryDefs = data.categories.map((c) => (typeof c === 'string' ? { name: c } : c))
+  const categoryNames = categoryDefs.map((c) => c.name)
   const products = data.products
 
   console.log(
@@ -98,10 +105,11 @@ async function main() {
   if (CLEAN) await clean()
 
   // 1) Upsert categories (unique on name) and build name -> id map.
-  const categoryRows = categoryNames.map((name) => ({
+  const categoryRows = categoryDefs.map(({ name, hiddenForClients }) => ({
     name,
     slug: slugify(name),
     emoji: resolveCategoryIcon(name),
+    hidden_for_clients: Boolean(hiddenForClients),
   }))
   const { data: cats, error: catErr } = await supabase
     .from('categories')
@@ -126,6 +134,10 @@ async function main() {
       price: Number(p.price) || 0,
       unit: p.unit || 'dona',
       image_url: null,
+      sold_by_piece: Boolean(p.soldByPiece),
+      piece_price: intOrNull(p.piecePrice),
+      piece_bundle_qty: intOrNull(p.pieceBundleQty),
+      piece_bundle_price: intOrNull(p.pieceBundlePrice),
     })
   }
 

@@ -22,6 +22,9 @@ function translate(error) {
   if (msg.includes('already registered') || msg.includes('already exists')) {
     return 'Bu login allaqachon band.'
   }
+  if (msg.includes('database error')) {
+    return "Hisobni yaratib bo'lmadi — bu login band bo'lishi mumkin. Boshqa login tanlang."
+  }
   if (msg.includes('email not confirmed')) {
     return 'Hisob tasdiqlanmagan. Administrator email tasdiqlashni o\'chirishi kerak.'
   }
@@ -124,5 +127,8 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     await supabase.auth.signOut()
     set({ user: null, role: null })
+    // Cached lists belong to the account that just left.
+    const { clearLiveCache } = await import('../hooks/useData')
+    clearLiveCache()
   },
 }))
